@@ -1,0 +1,13 @@
+﻿# 忽略 IDE 設定
+.idea/
+.vscode/
+*.log
+
+# 後端忽略
+backend/target/
+backend/**/*.class
+
+# 前端忽略
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
