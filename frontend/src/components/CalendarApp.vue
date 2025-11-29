@@ -191,7 +191,8 @@ const openEventModal = (date) => {
     description: '',
     startTime: '',
     endTime: '',
-    color: '#7c8db5'
+    color: '#7c8db5',
+    estimatedCost: null // 🔥 補上這行：讓表單知道有這個欄位
   }
   
   if (date) {
@@ -214,7 +215,8 @@ const openEventModalAtTime = (hour) => {
     description: '',
     startTime: formatDateTimeLocal(startDate),
     endTime: formatDateTimeLocal(endDate),
-    color: '#7c8db5'
+    color: '#7c8db5',
+    estimatedCost: null // 🔥 補上這行：讓表單知道有這個欄位
   }
 }
 
@@ -226,7 +228,8 @@ const editEvent = (event) => {
     description: event.description || '',
     startTime: formatDateTimeLocal(new Date(event.startTime)),
     endTime: formatDateTimeLocal(new Date(event.endTime)),
-    color: event.color || '#7c8db5'
+    color: event.color || '#7c8db5',
+    estimatedCost: event.estimatedCost || null 
   }
 }
 

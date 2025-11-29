@@ -24,7 +24,7 @@ import { getToken } from '../utils/auth'
 
 // ⚠️ 使用 ngrok 的後端 URL
 const api = axios.create({
-  baseURL: 'https://installed-testimony-providence-rebate.trycloudflare.com/calendar-web/api',
+  baseURL: 'https://conferences-extremely-congratulations-min.trycloudflare.com/calendar-web/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
