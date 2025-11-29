@@ -14,20 +14,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '../components/layout/Header.vue'
 import AdminDashboard from '../components/admin/AdminDashboard.vue'
-import { getUserInfo, clearAuth } from '../utils/auth'
+import { useAuth } from '../composables/useAuth'
 
-const router = useRouter()
-const currentUser = ref(null)
-
-const handleLogout = () => {
-  clearAuth()
-  router.push('/login')
-}
+const { currentUser, logout: handleLogout } = useAuth()
 
 onMounted(() => {
-  currentUser.value = getUserInfo()
-  
-  // 安全檢查：確保是管理員
   if (!currentUser.value || currentUser.value.role !== 'ADMIN') {
     alert('您沒有權限訪問此頁面')
     router.push('/calendar')
@@ -35,9 +26,15 @@ onMounted(() => {
 })
 </script>
 
+/* src/views/AdminView.vue */
 <style scoped>
 .admin-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* ❌ 移除舊的深色漸層 */
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  
+  /* ✅ 改為：清爽的淺灰背景，讓白色卡片更凸顯 */
+  background: #f3f4f6; 
+  padding-bottom: 40px;
 }
 </style>

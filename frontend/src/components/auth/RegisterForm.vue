@@ -121,20 +121,29 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+/* 修改這一段 */
 .register-form {
-  max-width: 400px;
+  max-width: 100%;     /* 讓它填滿父容器 */
   margin: 0 auto;
-  padding: 40px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 0;          /* 移除內距 */
+  background: transparent; /* 背景透明 */
+  box-shadow: none;    /* 移除陰影 */
 }
 
-h2 {
+/* h2 {
   text-align: center;
   color: #667eea;
   margin-bottom: 30px;
   font-size: 28px;
+} */
+ 
+ /* 建議：可以把 h2 標題隱藏或縮小，因為左邊已經有大 Logo 了 */
+h2 {
+  text-align: center;
+  color: #333; /* 改深色一點 */
+  margin-bottom: 30px;
+  font-size: 24px;
+  /* display: none; 如果覺得標題重複可以加上這行 */
 }
 
 .form-group {

@@ -106,30 +106,42 @@ const hasEvents = (date) => {
 <style scoped>
 .year-view {
   padding: 30px;
+  /* 👇 新增：給年視圖一個最小高度 */
+  height: 100%; /* 繼承高度 */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* 年視圖通常比較長，允許捲動 */
 }
 
 .months-grid {
   display: grid;
+  /* 自適應欄位 */
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
+  padding-bottom: 20px; 
 }
 
 .month-card {
   background: white;
   border: 2px solid #e0e0e0;
   border-radius: 12px;
-  padding: 15px;
+  padding: 20px; /* 稍微加大內距 */
   transition: all 0.3s;
+
+  /* 👇 新增：讓卡片內容均勻分佈 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .month-card:hover {
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  border-color: #557c55;
+  box-shadow: 0 4px 12px rgba(85, 124, 85, 0.2);
 }
 
 .month-title {
   text-align: center;
-  color: #667eea;
+  color: #557c55;
   margin-bottom: 10px;
   font-size: 18px;
 }
@@ -144,7 +156,7 @@ const hasEvents = (date) => {
   text-align: center;
   font-size: 10px;
   font-weight: bold;
-  color: #667eea;
+  color: #557c55;
   padding: 5px 2px;
 }
 
@@ -172,7 +184,7 @@ const hasEvents = (date) => {
 }
 
 .mini-day.has-events {
-  background: #667eea;
+  background: #557c55;
   color: white;
 }
 
@@ -183,7 +195,8 @@ const hasEvents = (date) => {
   }
   
   .months-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    /* 手機版強制一欄，避免擠壓 */
+    grid-template-columns: 1fr; 
     gap: 15px;
   }
   

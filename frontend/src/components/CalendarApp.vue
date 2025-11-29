@@ -1,60 +1,59 @@
 <template>
   <div class="container">
-    <!--
-    <div class="header">
-      <h1>📅 我的日曆</h1>
-      <p>Vue 3 + Spring Boot 日曆應用</p>
-    </div>
-  -->
-
-    <div v-if="loading" class="skeleton-calendar">
-    <div class="skeleton-header"></div>
-    <div class="skeleton-grid">
-      <div v-for="i in 35" :key="i" class="skeleton-cell"></div>
-    </div> 
-    </div>
+    <!-- 控制列 -->
     <div class="controls">
-      <div class="nav-buttons">
-        <button @click="previousPeriod">◀ {{ getPreviousLabel }}</button>
-        <button @click="nextPeriod">{{ getNextLabel }} ▶</button>
+      <!-- 左側: 導航按鈕 -->
+      <div class="btn-group">
+        <button @click="previousPeriod">◀</button>
         <button @click="goToToday">今天</button>
+        <button @click="nextPeriod">▶</button>
       </div>
-      <div class="current-period">{{ currentPeriodText }}</div>
-      <div class="view-buttons">
-        <button 
-          @click="viewMode = 'year'" 
-          :class="{ active: viewMode === 'year' }"
-        >
-          年視圖
-        </button>
-        <button 
-          @click="viewMode = 'month'" 
-          :class="{ active: viewMode === 'month' }"
-        >
-          月視圖
-        </button>
-        <button 
-          @click="viewMode = 'day'" 
-          :class="{ active: viewMode === 'day' }"
-        >
-          日視圖
-        </button>
+      
+      <!-- 中間: 日期標題 -->
+      <div class="date-title">{{ currentPeriodText }}</div>
+
+      <!-- 右側: 視圖切換 + 新增按鈕 -->
+      <div class="right-group">
+        <div class="btn-group">
+          <button 
+            @click="viewMode = 'year'" 
+            :class="{ active: viewMode === 'year' }"
+          >
+            年
+          </button>
+          <button 
+            @click="viewMode = 'month'" 
+            :class="{ active: viewMode === 'month' }"
+          >
+            月
+          </button>
+          <button 
+            @click="viewMode = 'day'" 
+            :class="{ active: viewMode === 'day' }"
+          >
+            日
+          </button>
+        </div>
+        <button class="btn-primary" @click="openEventModal()">+ 新增</button>
       </div>
-      <button class="add-event-btn" @click="openEventModal()">+ 新增事件</button>
     </div>
 
-    <div v-if="loading" class="loading">載入中...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
+    <!-- 後續載入時的 Loading 遮罩 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <div v-if="error" class="error">{{ error }}</div>
 
     <YearView
-      v-if="viewMode === 'year' && !loading"
+      v-if="viewMode === 'year'"
       :current-date="currentDate"
       :events="events"
       @go-to-date="goToDate"
     />
 
     <MonthView
-      v-else-if="viewMode === 'month' && !loading"
+      v-else-if="viewMode === 'month'"
       :current-date="currentDate"
       :events="events"
       @add-event="openEventModal"
@@ -62,7 +61,7 @@
     />
 
     <DayView
-      v-else-if="viewMode === 'day' && !loading"
+      v-else-if="viewMode === 'day'"
       :current-date="currentDate"
       :events="events"
       @add-event-at-time="openEventModalAtTime"
@@ -81,17 +80,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { formatDateTimeLocal, formatToIsoString } from '../utils/dateFormatter'
+import { ref, computed } from 'vue'
 import YearView from './YearView.vue'
 import MonthView from './MonthView.vue'
 import DayView from './DayView.vue'
 import EventModal from './EventModal.vue'
 import { eventApi } from '../services/api'
 import { handleApiError } from '../utils/errorHandle'
+import { useToast } from '../composables/useToast'
 
-
+const { showToast } = useToast()
 const currentDate = ref(new Date())
-const events = ref([])
 const viewMode = ref('month')
 const showModal = ref(false)
 const loading = ref(false)
@@ -102,8 +102,18 @@ const eventForm = ref({
   description: '',
   startTime: '',
   endTime: '',
-  color: '#667eea'
+  color: '#7c8db5'
 })
+
+// 🔥 關鍵改動：使用 await 來初始化資料
+const events = ref([])
+try {
+  const response = await eventApi.getAllEvents()
+  events.value = Array.isArray(response.data) ? response.data : []
+} catch (err) {
+  error.value = handleApiError(err, '載入事件失敗')
+  events.value = []
+}
 
 const currentPeriodText = computed(() => {
   const year = currentDate.value.getFullYear()
@@ -123,37 +133,19 @@ const modalTitle = computed(() => {
   return eventForm.value.id ? '編輯事件' : '新增事件'
 })
 
-const getPreviousLabel = computed(() => {
-  if (viewMode.value === 'year') return '上一年'
-  if (viewMode.value === 'month') return '上個月'
-  return '前一天'
-})
-
-const getNextLabel = computed(() => {
-  if (viewMode.value === 'year') return '下一年'
-  if (viewMode.value === 'month') return '下個月'
-  return '下一天'
-})
-
+// 後續的重新載入函數（用於 CRUD 操作後）
 const loadEvents = async () => {
   try {
     loading.value = true
     error.value = null
-    console.log('開始載入事件...')
-    
     const response = await eventApi.getAllEvents()
     
-    // ⚠️ 確保 response.data 是陣列
     if (Array.isArray(response.data)) {
       events.value = response.data
-      console.log('成功載入事件:', events.value.length, '個')
     } else {
-      console.error('API 返回的不是陣列:', response.data)
       events.value = []
       error.value = 'API 返回格式錯誤'
     }
-    events.value = response.data
-    console.log('成功載入事件:', events.value.length, '個')
   } catch (err) {
     error.value = handleApiError(err, '載入事件失敗')
     events.value = []
@@ -199,7 +191,7 @@ const openEventModal = (date) => {
     description: '',
     startTime: '',
     endTime: '',
-    color: '#667eea'
+    color: '#7c8db5'
   }
   
   if (date) {
@@ -222,7 +214,7 @@ const openEventModalAtTime = (hour) => {
     description: '',
     startTime: formatDateTimeLocal(startDate),
     endTime: formatDateTimeLocal(endDate),
-    color: '#667eea'
+    color: '#7c8db5'
   }
 }
 
@@ -234,7 +226,7 @@ const editEvent = (event) => {
     description: event.description || '',
     startTime: formatDateTimeLocal(new Date(event.startTime)),
     endTime: formatDateTimeLocal(new Date(event.endTime)),
-    color: event.color || '#667eea'
+    color: event.color || '#7c8db5'
   }
 }
 
@@ -246,159 +238,208 @@ const saveEvent = async (eventData) => {
   try {
     loading.value = true
     
-    // 轉換日期格式為 ISO 格式
     const eventToSave = {
       ...eventData,
-      startTime: new Date(eventData.startTime).toISOString().slice(0, 19),
-      endTime: new Date(eventData.endTime).toISOString().slice(0, 19)
+      startTime: formatToIsoString(eventData.startTime),
+      endTime: formatToIsoString(eventData.endTime)
     }
     
     if (eventData.id) {
-      console.log('更新事件:', eventData.id)
       await eventApi.updateEvent(eventData.id, eventToSave)
     } else {
-      console.log('創建新事件')
       await eventApi.createEvent(eventToSave)
     }
     
     await loadEvents()
     closeEventModal()
+    showToast('儲存成功', 'success')
   } catch (err) {
-    console.error('保存事件失敗:', err)
-    alert('操作失敗：' + (err.response?.data?.message || err.message))
+    showToast('操作失敗：' + (err.response?.data?.message || err.message), 'error')
   } finally {
     loading.value = false
   }
 }
 
 const deleteEvent = async (eventId) => {
-  if (!confirm('確定要刪除這個事件嗎？')) return
-  
   try {
     loading.value = true
-    console.log('刪除事件:', eventId)
     await eventApi.deleteEvent(eventId)
     await loadEvents()
     closeEventModal()
+    showToast('刪除成功', 'success')
   } catch (err) {
-    console.error('刪除事件失敗:', err)
-    alert('刪除失敗：' + (err.response?.data?.message || err.message))
+    showToast('刪除失敗：' + (err.response?.data?.message || err.message), 'error')
   } finally {
     loading.value = false
   }
 }
-
-const formatDateTimeLocal = (date) => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes
-}
-
-onMounted(async () => {
-  await loadEvents()
-})
 </script>
 
 <style scoped>
+/* 日系極簡風格 */
 .container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border-radius: 0;
   overflow: hidden;
+  position: relative;
 }
 
-/* .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 30px;
-  text-align: center;
-}
-
-.header h1 {
-  font-size: 2.5em;
-  margin-bottom: 10px;
-} */
-
+/* 控制列 - 極簡線框風格 */
 .controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
-  background: #f8f9fa;
-  border-bottom: 2px solid #e0e0e0;
+  padding: 15px 40px;
+  background: white;
+  border-bottom: 1px solid #f5f5f5;
+  flex-shrink: 0;
   flex-wrap: wrap;
   gap: 15px;
 }
 
-.nav-buttons button,
-.view-buttons button {
-  background: #667eea;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  margin: 0 5px;
-  border-radius: 8px;
+/* 按鈕組 */
+.btn-group {
+  display: flex;
+  gap: 0;
+}
+
+.btn-group button {
+  background: white;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  padding: 6px 16px;
+  font-size: 12px;
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s;
+  border-radius: 0;
+  margin-left: -1px;
+  transition: all 0.2s;
+  font-weight: 400;
+  letter-spacing: 0.05em;
 }
 
-.nav-buttons button:hover,
-.view-buttons button:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
+.btn-group button:first-child {
+  border-top-left-radius: 2px;
+  border-bottom-left-radius: 2px;
+  margin-left: 0;
 }
 
-.view-buttons button.active {
-  background: #10b981;
+.btn-group button:last-child {
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
 }
 
-.current-period {
-  font-size: 24px;
-  font-weight: bold;
+.btn-group button:hover {
+  background: #fcfcfc;
   color: #333;
+  border-color: #ccc;
+  z-index: 1;
+  position: relative;
 }
 
-.add-event-btn {
-  background: #10b981;
+.btn-group button.active {
+  background: #333;
+  color: white;
+  border-color: #333;
+  font-weight: 500;
+}
+
+/* 日期標題 */
+.date-title {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: #222;
+}
+
+/* 右側組合 */
+.right-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 新增按鈕 */
+.btn-primary {
+  background: #557c55;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 13px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s;
+  box-shadow: 0 2px 5px rgba(85, 124, 85, 0.25); 
+  transition: all 0.2s;
+  font-weight: 400;
 }
 
-.add-event-btn:hover {
-  background: #059669;
-  transform: translateY(-2px);
+.btn-primary:hover {
+  /* 👇 修改：Hover 變得更深一點 */
+  background: #446344; 
+  opacity: 1; /* 原本是 opacity 0.9，改顏色比較質感 */
 }
 
-.loading {
-  text-align: center;
-  padding: 50px;
-  font-size: 18px;
-  color: #667eea;
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #557c55;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .error {
-  text-align: center;
-  padding: 50px;
-  font-size: 18px;
-  color: #ef4444;
+  padding: 10px;
   background: #fee;
-  margin: 20px;
-  border-radius: 8px;
+  color: #c00;
+  text-align: center;
 }
 
+/* RWD */
 @media (max-width: 768px) {
   .controls {
+    padding: 8px 10px;
+    gap: 8px;
     flex-direction: column;
     align-items: stretch;
+  }
+  
+  .controls > :first-child,
+  .date-title {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .right-group {
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .date-title {
+    font-size: 16px;
+    order: -1;
   }
 }
 </style>

@@ -24,7 +24,7 @@ import { getToken } from '../utils/auth'
 
 // ⚠️ 使用 ngrok 的後端 URL
 const api = axios.create({
-  baseURL: 'https://booking-knit-costa-producing.trycloudflare.com/calendar-web/api',
+  baseURL: 'https://installed-testimony-providence-rebate.trycloudflare.com/calendar-web/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -64,10 +64,14 @@ api.interceptors.response.use(
     
     // Token 過期或未授權
     if (error.response?.status === 401) {
-      // 清除 Token 並跳轉到登入頁
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user_info')
-      window.location.href = '/login'
+      // 👇 [修改重點] 加入這個判斷！
+      // 如果當前網址不包含 '/login'，才執行強制登出跳轉。
+      // 這樣當你在登入頁打錯密碼時，就不會被強制刷新了。
+      if (!window.location.pathname.includes('/login')) {
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user_info')
+        window.location.href = '/login'
+      }
     }
     
     return Promise.reject(error)

@@ -79,12 +79,11 @@ const handleSubmit = async () => {
 
 <style scoped>
 .login-form {
-  max-width: 400px;
+  max-width: 100%; /* 改為 100% */
   margin: 0 auto;
-  padding: 40px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 0;      /* 移除 padding */
+  background: transparent; /* 改為透明 */
+  box-shadow: none;        /* 移除陰影 */
 }
 
 h2 {

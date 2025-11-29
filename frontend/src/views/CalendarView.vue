@@ -5,34 +5,62 @@
       :user-role="currentUser?.role || 'USER'"
       @logout="handleLogout" 
     />
-    <CalendarApp />
+    
+    <!-- 🔥 使用 Suspense 包裹非同步元件 -->
+    <Suspense>
+      <!-- 主要內容 -->
+      <template #default>
+        <CalendarApp />
+      </template>
+      
+      <!-- Loading 狀態 -->
+      <template #fallback>
+        <SkeletonCalendar />
+      </template>
+    </Suspense>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import Header from '../components/layout/Header.vue'
 import CalendarApp from '../components/CalendarApp.vue'
-import { getUserInfo, clearAuth } from '../utils/auth'
+import SkeletonCalendar from '../components/SkeletonCalendar.vue'
+import { useAuth } from '../composables/useAuth'
 
-const router = useRouter()
-const currentUser = ref(null)
-
-const handleLogout = () => {
-  clearAuth()
-  router.push('/login')
-}
-
-onMounted(() => {
-  currentUser.value = getUserInfo()
-  console.log('當前用戶:', currentUser.value)
-})
+const { currentUser, logout: handleLogout } = useAuth()
 </script>
 
 <style scoped>
+/* 日系極簡風格 */
 .calendar-view {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 100vh; 
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f9f9f9;
+}
+
+:deep(.header) {
+  flex-shrink: 0;
+}
+
+:deep(.container),
+:deep(.skeleton-container) {
+  flex: 1;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* RWD */
+@media (max-width: 768px) {
+  :deep(.container),
+  :deep(.skeleton-container) {
+    margin: 0;
+    border: none;
+  }
 }
 </style>
