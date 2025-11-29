@@ -2,6 +2,17 @@ import { computed } from 'vue'
 
 export function useCostAnalysis(eventsRef) {
   
+  // 🔥 輔助函式：取得本地日期的 YYYY-MM-DD (解決時區偏移問題)
+  const getLocalDateKey = (dateInput) => {
+    const d = new Date(dateInput)
+    // 確保這裡是用本地時間 getFullYear / getMonth / getDate
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  // 計算每日總花費
   const dailyCosts = computed(() => {
     const costs = {}
     if (!eventsRef.value || !Array.isArray(eventsRef.value)) return costs
@@ -9,7 +20,10 @@ export function useCostAnalysis(eventsRef) {
     eventsRef.value.forEach(event => {
       const cost = parseFloat(event.estimatedCost || 0)
       if (cost <= 0) return
-      const dateKey = new Date(event.startTime).toISOString().split('T')[0]
+      
+      // 🔥 修正 1：使用本地時間 Key
+      const dateKey = getLocalDateKey(event.startTime)
+      
       if (!costs[dateKey]) costs[dateKey] = 0
       costs[dateKey] += cost
     })
@@ -22,10 +36,11 @@ export function useCostAnalysis(eventsRef) {
     return Math.max(...values)
   })
 
-  // 0: 無, 1: 低, 2: 中, 3: 高
   const getCostLevel = (date) => {
     if (!date) return 0
-    const dateKey = date.toISOString().split('T')[0]
+    // 🔥 修正 2：使用本地時間 Key
+    const dateKey = getLocalDateKey(date)
+    
     const cost = dailyCosts.value[dateKey] || 0
     const max = maxDailyCost.value
 
@@ -37,7 +52,7 @@ export function useCostAnalysis(eventsRef) {
   }
 
   const getDailyCost = (date) => {
-    const dateKey = date.toISOString().split('T')[0]
+    const dateKey = getLocalDateKey(date)
     return dailyCosts.value[dateKey] || 0
   }
 

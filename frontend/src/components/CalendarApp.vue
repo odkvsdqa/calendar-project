@@ -1,16 +1,19 @@
 <template>
-  <div class="container">
+   <!-- 1. 在最外層容器加上 @wheel 監聽滾輪 -->
+  <div class="container" @wheel="handleWheel">
     <!-- 控制列 -->
     <div class="controls">
       <!-- 左側: 導航按鈕 -->
-      <div class="btn-group">
-        <button @click="previousPeriod">◀</button>
-        <button @click="goToToday">今天</button>
-        <button @click="nextPeriod">▶</button>
+      <div class="left-group">
+        <button class="btn-today" @click="goToToday">今天</button>
       </div>
       
-      <!-- 中間: 日期標題 -->
-      <div class="date-title">{{ currentPeriodText }}</div>
+       <!-- 3. 中間：左右箭頭包夾標題 -->
+      <div class="center-group">
+        <button class="nav-arrow" @click="previousPeriod">◀</button>
+        <div class="date-title">{{ currentPeriodText }}</div>
+        <button class="nav-arrow" @click="nextPeriod">▶</button>
+      </div>
 
       <!-- 右側: 視圖切換 + 新增按鈕 -->
       <div class="right-group">
@@ -50,6 +53,7 @@
       :current-date="currentDate"
       :events="events"
       @go-to-date="goToDate"
+       @change-view="changeViewMode"
     />
 
     <MonthView
@@ -58,6 +62,7 @@
       :events="events"
       @add-event="openEventModal"
       @edit-event="editEvent"
+       @change-view="changeViewMode"
     />
 
     <DayView
@@ -66,6 +71,7 @@
       :events="events"
       @add-event-at-time="openEventModalAtTime"
       @edit-event="editEvent"
+       @change-view="changeViewMode"
     />
 
     <EventModal
@@ -77,6 +83,7 @@
       @delete="deleteEvent"
     />
   </div>
+
 </template>
 
 <script setup>
@@ -89,6 +96,7 @@ import EventModal from './EventModal.vue'
 import { eventApi } from '../services/api'
 import { handleApiError } from '../utils/errorHandle'
 import { useToast } from '../composables/useToast'
+import { useCalendarNavigation } from '../composables/useCalendarNavigation' // 🔥 引入
 
 const { showToast } = useToast()
 const currentDate = ref(new Date())
@@ -104,6 +112,12 @@ const eventForm = ref({
   endTime: '',
   color: '#7c8db5'
 })
+const { previousPeriod, nextPeriod, goToToday, handleWheel } = useCalendarNavigation(currentDate, viewMode)
+// 🔥 新增：處理子組件請求切換視圖 (給 Task 3 用)
+const changeViewMode = (mode, date) => {
+  if (date) currentDate.value = new Date(date)
+  viewMode.value = mode
+}
 
 // 🔥 關鍵改動：使用 await 來初始化資料
 const events = ref([])
@@ -154,29 +168,29 @@ const loadEvents = async () => {
   }
 }
 
-const previousPeriod = () => {
-  if (viewMode.value === 'year') {
-    currentDate.value = new Date(currentDate.value.getFullYear() - 1, 0, 1)
-  } else if (viewMode.value === 'month') {
-    currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1, 1)
-  } else {
-    currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), currentDate.value.getDate() - 1)
-  }
-}
+// const previousPeriod = () => {
+//   if (viewMode.value === 'year') {
+//     currentDate.value = new Date(currentDate.value.getFullYear() - 1, 0, 1)
+//   } else if (viewMode.value === 'month') {
+//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1, 1)
+//   } else {
+//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), currentDate.value.getDate() - 1)
+//   }
+// }
 
-const nextPeriod = () => {
-  if (viewMode.value === 'year') {
-    currentDate.value = new Date(currentDate.value.getFullYear() + 1, 0, 1)
-  } else if (viewMode.value === 'month') {
-    currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 1)
-  } else {
-    currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), currentDate.value.getDate() + 1)
-  }
-}
+// const nextPeriod = () => {
+//   if (viewMode.value === 'year') {
+//     currentDate.value = new Date(currentDate.value.getFullYear() + 1, 0, 1)
+//   } else if (viewMode.value === 'month') {
+//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 1)
+//   } else {
+//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), currentDate.value.getDate() + 1)
+//   }
+// }
 
-const goToToday = () => {
-  currentDate.value = new Date()
-}
+// const goToToday = () => {
+//   currentDate.value = new Date()
+// }
 
 const goToDate = (date) => {
   currentDate.value = new Date(date)
@@ -293,7 +307,8 @@ const deleteEvent = async (eventId) => {
 
 /* 控制列 - 極簡線框風格 */
 .controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* 左 中 右 */
   justify-content: space-between;
   align-items: center;
   padding: 15px 40px;
@@ -304,10 +319,16 @@ const deleteEvent = async (eventId) => {
   gap: 15px;
 }
 
-/* 按鈕組 */
-.btn-group {
-  display: flex;
-  gap: 0;
+
+/* 左側 */
+.left-group { justify-self: start; }
+
+/* 中間 */
+.center-group { 
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+  justify-self: center; 
 }
 
 .btn-group button {
@@ -361,8 +382,13 @@ const deleteEvent = async (eventId) => {
 /* 右側組合 */
 .right-group {
   display: flex;
-  align-items: center;
+  justify-self: end;
   gap: 10px;
+}
+
+.btn-today {
+  background: white; border: 1px solid #e0e0e0; padding: 6px 16px;
+  border-radius: 4px; cursor: pointer; color: #666; font-size: 13px;
 }
 
 /* 新增按鈕 */
@@ -385,6 +411,12 @@ const deleteEvent = async (eventId) => {
   background: #446344; 
   opacity: 1; /* 原本是 opacity 0.9，改顏色比較質感 */
 }
+
+.nav-arrow {
+  background: transparent; border: none; font-size: 14px; 
+  color: #999; cursor: pointer; padding: 5px;
+}
+.nav-arrow:hover { color: #557c55; transform: scale(1.1); }
 
 .loading-overlay {
   position: absolute;

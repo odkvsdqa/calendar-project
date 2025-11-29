@@ -2,7 +2,9 @@
   <div class="year-view">
     <div class="months-grid">
       <div v-for="monthIndex in 12" :key="monthIndex" class="month-card">
-        <h3 class="month-title">{{ monthIndex }}月</h3>
+        <h3 class="month-title clickable" @click="emit('change-view', 'month', new Date(currentDate.getFullYear(), monthIndex - 1, 1))">
+          {{ monthIndex }}月
+        </h3>
         <div class="mini-calendar">
           <div v-for="day in ['日', '一', '二', '三', '四', '五', '六']" :key="day" class="mini-day-header">
             {{ day }}
@@ -14,11 +16,12 @@
             :class="{
               'other-month': dayData.isOtherMonth,
               'today': dayData.isToday,
-              'has-events': hasEvents(dayData.date)
+              'has-events': !dayData.isOtherMonth && hasEvents(dayData.date)   
             }"
-            @click="emit('go-to-date', dayData.date)"
+            :title="getDailyCost(dayData.date) > 0 ? `$${formatCost(getDailyCost(dayData.date))}` : ''"
+            @click.stop="emit('change-view', 'day', dayData.date)"
           >
-            {{ dayData.date.getDate() }}
+            <span v-if="!dayData.isOtherMonth">{{ dayData.date.getDate() }}</span>
           </div>
         </div>
       </div>
@@ -27,6 +30,8 @@
 </template>
 
 <script setup>
+import { toRef } from 'vue'
+import { useCostAnalysis } from '../composables/useCostAnalysis'
 const props = defineProps({
   currentDate: {
     type: Date,
@@ -38,8 +43,11 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['go-to-date'])
-
+// 🔥 2. 新增 change-view 定義
+const emit = defineEmits(['go-to-date', 'change-view'])
+// 🔥 2. 補上這裡的邏輯 (之前漏掉了)
+const eventsRef = toRef(props, 'events')
+const { getCostLevel, getDailyCost, formatCost } = useCostAnalysis(eventsRef)
 const getMonthDays = (monthIndex) => {
   const year = props.currentDate.getFullYear()
   const firstDay = new Date(year, monthIndex, 1)
@@ -48,18 +56,20 @@ const getMonthDays = (monthIndex) => {
   
   const firstDayWeek = firstDay.getDay()
   const lastDayDate = lastDay.getDate()
-  const prevLastDayDate = prevLastDay.getDate()
+  // const prevLastDayDate = prevLastDay.getDate() // 這行沒用到可以註解
 
   const days = []
 
+  // 補上個月
   for (let i = firstDayWeek - 1; i >= 0; i--) {
     days.push({
-      date: new Date(year, monthIndex - 1, prevLastDayDate - i),
+      date: new Date(year, monthIndex - 1, prevLastDay.getDate() - i), // 修正變數引用
       isOtherMonth: true,
       isToday: false
     })
   }
 
+  // 當月
   const today = new Date()
   for (let i = 1; i <= lastDayDate; i++) {
     const isToday = year === today.getFullYear() && 
@@ -72,11 +82,11 @@ const getMonthDays = (monthIndex) => {
     })
   }
 
-  const totalCells = days.length
-  const remainingDays = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7)
-  for (let i = 1; i <= remainingDays; i++) {
+  // 補下個月
+  while (days.length % 7 !== 0) {
+    const nextDate = days.length - (firstDayWeek + lastDayDate) + 1
     days.push({
-      date: new Date(year, monthIndex + 1, i),
+      date: new Date(year, monthIndex + 1, nextDate), // 簡化邏輯
       isOtherMonth: true,
       isToday: false
     })
@@ -85,20 +95,21 @@ const getMonthDays = (monthIndex) => {
   return days
 }
 
+// 判斷當天是否有事件 (支援跨日事件)
 const hasEvents = (date) => {
-  if (!Array.isArray(props.events)) {
-    console.warn('events is not an array:', props.events)
-    return []
-  }
-  const targetDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  
+  // 取得當前格子的時間戳記 (標準化為當日 00:00:00)
+  const cellTime = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+
   return props.events.some(event => {
-    const startDate = new Date(event.startTime)
-    const endDate = new Date(event.endTime)
-    const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
-    const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())
-    
-    return targetDay >= startDay && targetDay <= endDay
+    const start = new Date(event.startTime)
+    const end = new Date(event.endTime)
+
+    // 將事件的開始與結束時間也標準化為 00:00:00，避免因為幾點幾分而判斷錯誤
+    const sTime = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()
+    const eTime = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime()
+
+    // 🔥 關鍵修正：只要格子時間在 [開始, 結束] 區間內，就算有事件
+    return cellTime >= sTime && cellTime <= eTime
   })
 }
 </script>
@@ -186,7 +197,11 @@ const hasEvents = (date) => {
 .mini-day.has-events {
   background: #557c55;
   color: white;
+  font-weight: bold;
 }
+
+.clickable { cursor: pointer; transition: color 0.2s; }
+.clickable:hover { color: #446344; text-decoration: underline; }
 
 /* ⚠️ 新增 RWD - 平板 (768px 以下) */
 @media (max-width: 768px) {
