@@ -161,6 +161,14 @@ const hasEvents = (date) => {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
+
+   /* 🔥 關鍵修正：利用 Gap 製作格線 */
+  gap: 1px;               /* 縫隙寬度 = 格線粗細 */
+  background-color: #d1d5db; /* 縫隙顏色 = 格線顏色 (冷灰) */
+  border: 1px solid #d1d5db; /* 最外圈的框線 */
+  
+  border-radius: 4px; /* 或是 0，看你喜好 */
+  overflow: hidden;   /* 確保圓角內內容不溢出 */
 }
 
 .mini-day-header {
@@ -172,16 +180,22 @@ const hasEvents = (date) => {
 }
 
 .mini-day {
+/* 🔥 關鍵：格子設為白色，蓋住背景，只露出縫隙 */
+  background-color: white;
   text-align: center;
-  padding: 8px 2px;
-  font-size: 12px;
+ padding: 4px  2px;  /* 調整內距 */
+  font-size: 11px;
   cursor: pointer;
-  border-radius: 4px;
   transition: all 0.2s;
+  /* 確保高度一致 */
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mini-day:hover {
-  background: #f0f4ff;
+  background: #f5f7f5;
 }
 
 .mini-day.other-month {
@@ -197,7 +211,6 @@ const hasEvents = (date) => {
 .mini-day.has-events {
   background: #557c55;
   color: white;
-  font-weight: bold;
 }
 
 .clickable { cursor: pointer; transition: color 0.2s; }

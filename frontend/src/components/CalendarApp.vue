@@ -42,9 +42,8 @@
     </div>
 
     <!-- 後續載入時的 Loading 遮罩 -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="spinner"></div>
-    </div>
+     <!-- ✅ 替換為共用組件 -->
+    <LoadingOverlay :visible="loading" />
 
     <div v-if="error" class="error">{{ error }}</div>
 
@@ -97,6 +96,7 @@ import { eventApi } from '../services/api'
 import { handleApiError } from '../utils/errorHandle'
 import { useToast } from '../composables/useToast'
 import { useCalendarNavigation } from '../composables/useCalendarNavigation' // 🔥 引入
+import LoadingOverlay from './common/LoadingOverlay.vue'
 
 const { showToast } = useToast()
 const currentDate = ref(new Date())
@@ -417,19 +417,6 @@ const deleteEvent = async (eventId) => {
   color: #999; cursor: pointer; padding: 5px;
 }
 .nav-arrow:hover { color: #557c55; transform: scale(1.1); }
-
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 50;
-}
 
 .spinner {
   width: 40px;

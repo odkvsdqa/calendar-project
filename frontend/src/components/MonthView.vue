@@ -1,9 +1,11 @@
 <template>
   <div class="month-view">
+    <!-- 星期標題 -->
     <div class="weekdays-header">
       <div v-for="day in weekdays" :key="day" class="weekday-cell">{{ day }}</div>
     </div>
 
+    <!-- 日曆網格 -->
     <div class="calendar-grid">
       <div 
         v-for="(dayData, index) in calendarDays" 
@@ -12,8 +14,7 @@
         :class="{
           'other-month': dayData.isOtherMonth,
           'today': dayData.isToday, 
-          /* 🔥 新增：如果沒金額但有事件，顯示基礎色 (這行是關鍵) */
-           /* 因為 getEventsForDay 已經包含了 27~30 號的範圍判斷，所以這幾天都會亮 */
+          /* 只要有事件就變色 */
           'has-event': !dayData.isOtherMonth && getEventsForDay(dayData.date).length > 0
         }"
         @click="emit('add-event', dayData.date)"
@@ -28,38 +29,57 @@
         </div>
         
         <div class="events-wrapper">
-          <div 
-            v-for="event in getEventsForDay(dayData.date).slice(0,4)"
-            :key="event.id"
-            class="event-bar"
-            :style="getEventStyle(event, dayData.date)"
-            @click.stop="emit('edit-event', event)"
-            :title="getEventTitle(event)"
-          >
-            <span v-if="shouldShowTitle(event, dayData.date)" class="event-title">
-              {{ event.title }}
-            </span>
-          </div>
-        </div>
-       <!-- 🔥 3. 修改判斷 length > 4，並更改文字 -->
-        <div v-if="getEventsForDay(dayData.date).length > 4" class="more-events" @click.stop="openListModal(dayData.date)">
-           其他的 {{ getEventsForDay(dayData.date).length - 4 }} 項預定
-       </div>
-
-       <!-- 🔥 新增：當日事件列表彈窗 -->
-       <div v-if="showListModal" class="list-modal-overlay" @click.self="closeListModal">
-         <div class="list-modal">
-           <div class="list-header">
-             <h3>{{ listDateTitle }}</h3>
-               <button class="btn-close" @click="closeListModal">✕</button>
+          <!-- 🔥 修改重點：使用 getVisibleTracks 來渲染，包含 null (空氣) -->
+          <template v-for="(event, idx) in getVisibleTracks(dayData.date)" :key="idx">
+            
+            <!-- 情況 A: 這個軌道有事件 -> 渲染事件條 -->
+            <div 
+              v-if="event"
+              class="event-bar"
+              :style="getEventStyle(event, dayData.date)"
+              @click.stop="emit('edit-event', event)"
+              :title="getEventTitle(event)"
+            >
+              <span v-if="shouldShowTitle(event, dayData.date)" class="event-title">
+                {{ event.title }}
+              </span>
             </div>
-            <div class="list-content">
-             <div 
-               v-for="event in listEvents" 
-               :key="event.id" 
-               class="list-item"
-               @click="handleListEventClick(event)"
-              >
+
+            <!-- 情況 B: 這個軌道是空的 -> 渲染隱形佔位符，防止下方事件跳上來 -->
+            <div v-else class="empty-event"></div>
+            
+          </template>
+        </div>
+
+        <!-- More 按鈕 (判斷總數是否大於 4) -->
+        <div 
+          v-if="getEventsForDay(dayData.date).length > 4" 
+          class="more-events" 
+          @click.stop="openListModal(dayData.date)"
+        >
+           其他的 {{ getEventsForDay(dayData.date).length - 4 }} 項預定
+        </div>
+      </div>
+    </div> 
+    <!-- Grid 結束 -->
+
+    <!-- 列表彈窗 -->
+    <div v-if="showListModal" 
+    class="list-modal-overlay" 
+    @click.self="closeListModal"
+    @wheel.stop>
+      <div class="list-modal">
+        <div class="list-header">
+          <h3>{{ listDateTitle }}</h3>
+          <button class="btn-close" @click="closeListModal">✕</button>
+        </div>
+        <div class="list-content">
+          <div 
+            v-for="event in listEvents" 
+            :key="event.id" 
+            class="list-item"
+            @click="handleListEventClick(event)"
+          >
             <div class="item-dot" :style="{ background: event.color || '#557c55' }"></div>
             <div class="item-info">
               <span class="item-time">{{ formatTime(event.startTime) }}</span>
@@ -69,11 +89,9 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
-</div>
-</template>
 
+  </div>
+</template>
 <script setup>
 import { ref, watch, toRef, computed } from 'vue' 
 
@@ -179,26 +197,102 @@ const formatTime = (isoString) => {
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
-const getEventStyle = (event, date) => { /* ... 保留你修好的邏輯 ... */ 
+const getEventStyle = (event, date) => {
+  // 1. 軌道與位置計算 (保留你的邏輯)
   const trackIndex = eventTracks.value.get(event.id) || 0
-  const topPosition = trackIndex * 18
-  const startDate = new Date(event.startTime); const endDate = new Date(event.endTime)
+  
+  // 🔥 微調：改成 19 (18px高度 + 1px間距)，這樣事件條之間會有 1px 的縫隙，不會黏在一起
+  const topPosition = trackIndex * 19 
+  
+  // 2. 日期計算
+  const startDate = new Date(event.startTime)
+  const endDate = new Date(event.endTime)
   const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
   const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())
   const currentDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const isStart = currentDay.getTime() === startDay.getTime(); 
+  
+  const isStart = currentDay.getTime() === startDay.getTime()
   const isEnd = currentDay.getTime() === endDay.getTime()
-  const style = { top: topPosition + 'px', position: 'absolute', zIndex: 10 - trackIndex, left: '0', right: '0',
-   backgroundColor: event.color || '#557c55', color: 'white', fontSize: '10px', lineHeight: '16px', padding: '1px 4px', whiteSpace: 'nowrap', overflow: 'hidden', 
-   textOverflow: 'ellipsis', marginLeft: isStart ? '2px' : '0', marginRight: isEnd ? '2px' : '0' }
-  if (isStart && isEnd) { style.borderRadius = '2px'; style.marginLeft = '1px'; style.marginRight = '0px' } 
-  else if (isStart) { style.borderRadius = '2px 0 0 2px'; style.marginLeft = '1px' }
-  else if (isEnd) { style.borderRadius = '0 2px 2px 0'; style.marginRight = '0px' }
+
+  // 3. 樣式設定
+  const style = {
+    // --- 定位 (絕對定位，這是你測試出不會跑版的關鍵) ---
+    position: 'absolute',
+    top: `${topPosition}px`,
+    zIndex: 10 - trackIndex,
+    left: '0',
+    right: '0',
+    width: '100%', 
+    boxSizing: 'border-box',
+
+    // --- 視覺 (Google 風格：實心、白字、清晰) ---
+    backgroundColor: event.color || '#557c55',
+    color: '#ffffff',
+    
+    // 🔥 修正你的 typo: ontSize -> fontSize
+    fontSize: '11px',  // 稍微大一點點 (10px -> 11px) 比較清楚
+    fontWeight: '500', // 稍微加粗，提升白字可讀性
+    textShadow: '0 0 1px rgba(0,0,0,0.2)', // 微微陰影防糊
+    
+    lineHeight: '18px',
+    height: '18px',
+    padding: '0 6px',
+    
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    boxShadow: 'none', // 扁平化
+
+    // --- 預設邊距 (稍後覆蓋) ---
+    marginLeft: '0px',
+    marginRight: '0px',
+    borderRadius: '0px'
+  }
+
+  // 4. 邊距與圓角邏輯 (保留你測試成功的數值)
+  if (isStart && isEnd) {
+    style.borderRadius = '3px'
+    style.marginLeft = '1px' // 左右各留 1px，視覺置中且不黏邊
+    style.marginRight = '1px'
+  } 
+  else if (isStart) {
+    style.borderTopLeftRadius = '3px'
+    style.borderBottomLeftRadius = '3px'
+    style.marginLeft = '1px' // 起始點留縫隙
+    style.marginRight = '0px' // 連接處貼齊
+  } 
+  else if (isEnd) {
+    style.borderTopRightRadius = '3px'
+    style.borderBottomRightRadius = '3px'
+    style.marginLeft = '0px' // 連接處貼齊
+    style.marginRight = '1px' // 結束點留縫隙
+  } 
+  // 中間段維持 margin 0
+
   return style
 }
 const getEventTitle = (event) => { return event.description ? event.title + '\n' + event.description : event.title }
 const shouldShowTitle = (event, date) => { const s = new Date(event.startTime); return date.getTime() === new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime() }
-
+// 🔥 新增：產生固定 4 個軌道的陣列 (含空位)
+const getVisibleTracks = (date) => {
+  // 1. 取得當天所有事件
+  const dayEvents = getEventsForDay(date)
+  
+  // 2. 建立一個固定 4 格的空陣列 [null, null, null, null]
+  const slots = Array(4).fill(null)
+  
+  // 3. 把事件填入對應的軌道 (Track)
+  dayEvents.forEach(event => {
+    const track = eventTracks.value.get(event.id)
+    
+    // 只顯示軌道 0~3 的事件
+    if (track !== undefined && track < 4) {
+      slots[track] = event
+    }
+  })
+  
+  return slots
+}
 renderCalendar()
 watch(() => props.currentDate, renderCalendar)
 watch(() => props.events, renderCalendar, { deep: true })
@@ -207,26 +301,70 @@ watch(() => props.events, renderCalendar, { deep: true })
 <style scoped>
 /* 繼承你原有的 Style + 熱力圖樣式 */
 .month-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; height: 100%; background: #fff; }
-.weekdays-header { display: grid; grid-template-columns: repeat(7, 1fr); background: #fafbf9; border-bottom: 1px solid #d1d5db; flex-shrink: 0; }
-.weekday-cell { text-align: center; padding: 12px 0; font-weight: 500; color: #888; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; border-left: 1px solid #e0e0e0; flex: 1; gap: 0; overflow-y: auto; }
+.weekdays-header { 
+  display: grid; 
+  grid-template-columns: repeat(7, 1fr); 
+  background: #fafbf9; 
+
+  /* 下底線 */
+  border-bottom: 1px solid #d1d5db; 
+
+   /* 左右邊框補齊 */
+  border-left: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  border-top: 1px solid #d1d5db;
+  
+  /* 🔥 微調：因為下面有 gap: 1px，這裡其實很難完美對齊每一條直線
+     但在視覺上，只要外框對齊，中間的線稍微錯開 1px 通常是可以接受的。
+     如果要完美對齊，Header 也要用 gap: 1px */
+  gap: 1px; 
+  background-color: #d1d5db; /* 讓 Header 的縫隙也變灰 */
+ }
+.weekday-cell { 
+  background-color: #fafbf9; /* 確保 Header 格子有顏色 */
+  text-align: center; 
+  padding: 12px 0; 
+  font-weight: 500; 
+  color: #888; 
+  font-size: 11px; 
+  letter-spacing: 0.1em; 
+  text-transform: uppercase;
+ }
+.calendar-grid { 
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); 
+  grid-auto-rows: 1fr; 
+  flex: 1; 
+  gap: 1px; 
+  overflow-y: auto; 
+  background-color: #d1d5db; /* 格線顏色 (統一用這個) */
+  border: 1px solid #d1d5db; /* 外框 */
+}
 .clickable-num { cursor: pointer; border-radius: 50%; transition: background 0.2s; padding: 2px; }
 .clickable-num:hover { background: #eee; color: #333; }
 .day:nth-child(7n+1) { border-left: 1px solid #f5f5f5; }
+/* 2. 修改 .day */
 .day {
-  /* 🔥 改為固定高度，不要 auto */
-  min-height: 120px;
-  height: 120px; /* 🔥 鎖死高度 */
+  /* 🔥 關鍵：背景全白，移除所有單邊 border */
+  background-color: white;
   
-  /* 其他保持不變 */
-  border-right: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 0;
-  cursor: pointer; 
-  position: relative; 
-  transition: background 0.2s; 
-  background: white;
+  /* ❌ 移除這些舊設定 */
+  /* border-right: ... */
+  /* border-bottom: ... */
+  
+  padding: 4px 0;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  min-height: 120px;
+  height: auto;
   box-sizing: border-box;
+  width: 100%;
+  
+  /* Flex 佈局維持不變 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 .day:hover { background: #f5f7f5; }
 /* Day Header */
@@ -318,6 +456,15 @@ watch(() => props.events, renderCalendar, { deep: true })
   pointer-events: auto; /* 🔥 恢復點擊 */
 }
 .event-bar:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* 再次提醒 CSS */
+.empty-event {
+  height: 18px;
+  margin-bottom: 1px;
+  width: 100%;
+  visibility: hidden;
+}
+
 .more-events { 
   /* 🔥 改為絕對定位，固定在格子底部 */
   position: absolute;
@@ -356,11 +503,28 @@ watch(() => props.events, renderCalendar, { deep: true })
 }
 /* 🔥 列表彈窗樣式 */
 .list-modal-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.3); z-index: 2000;
-  display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(2px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* 改用 viewport 單位，確保蓋住全螢幕 */
+  width: 100vw; 
+  height: 100vh;
+  
+  /* 🔥 修正 1：移除 backdrop-filter (這是變全黑的元兇) */
+  /* backdrop-filter: blur(2px); */
+  
+  /* 🔥 修正 2：單純的半透明黑 (0.3 ~ 0.5 即可) */
+  background-color: rgba(0, 0, 0, 0.3); 
+  
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* 確保彈窗不會繼承奇怪的文字設定 */
+  text-align: left; 
 }
+
 .list-modal {
   background: white; width: 300px; max-height: 80vh;
   border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -384,4 +548,9 @@ watch(() => props.events, renderCalendar, { deep: true })
 .item-info { display: flex; flex-direction: column; overflow: hidden; }
 .item-time { font-size: 11px; color: #999; }
 .item-title { font-size: 13px; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 </style>

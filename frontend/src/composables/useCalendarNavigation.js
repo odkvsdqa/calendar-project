@@ -58,9 +58,21 @@ export function useCalendarNavigation(currentDate, viewMode) {
   // 滾輪邏輯
   let wheelTimeout = false
 
+  // src/composables/useCalendarNavigation.js
+
   const handleWheel = (e) => {
-    // 1. 水平捲動 (Shift + 滾輪)
-    // 水平切換通常習慣是回到頂部
+    // ------------------------------------------------
+    // 0. 全域檢查：如果滑鼠指標下有開啟的 Modal (遮罩)，則完全不處理
+    // (雖然我們在 Modal 加了 @wheel.stop，但這是一個雙重保險)
+    // ------------------------------------------------
+    const target = e.target
+    if (target.closest('.modal-overlay') || target.closest('.list-modal-overlay')) {
+      return // 在彈窗上，直接忽略導航邏輯
+    }
+
+    // ------------------------------------------------
+    // 1. 水平捲動 (Shift + 滾輪) - 永遠觸發換頁
+    // ------------------------------------------------
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
       e.preventDefault()
       if (wheelTimeout) return
@@ -78,11 +90,35 @@ export function useCalendarNavigation(currentDate, viewMode) {
       return
     }
 
-    // 2. 垂直捲動
-    // A. 月視圖 (無捲軸)
+    // ------------------------------------------------
+    // 2. 垂直捲動 (包含 MonthView 的特殊處理)
+    // ------------------------------------------------
+    
+    // 檢查「視窗本身」是否出現了捲動條 (例如因為縮放)
+    // document.documentElement.scrollHeight 是整個網頁高度
+    // window.innerHeight 是視窗可視高度
+    const bodyIsScrollable = document.documentElement.scrollHeight > window.innerHeight
+    const scrollTop = window.scrollY || document.documentElement.scrollTop
+    
+    // 判斷視窗是否撞頂或撞底 (容許 1px 誤差)
+    const bodyAtTop = scrollTop <= 0
+    const bodyAtBottom = Math.ceil(scrollTop + window.innerHeight) >= document.documentElement.scrollHeight
+
+    // A. 如果是「月」視圖
     if (viewMode.value === 'month') {
+      // 🔥 關鍵修正：如果網頁可以捲動，我們必須優先讓它捲動
+      if (bodyIsScrollable) {
+        // 如果想往下滾，但還沒到底 -> 讓瀏覽器捲動，不換頁
+        if (e.deltaY > 0 && !bodyAtBottom) return 
+        
+        // 如果想往上滾，但還沒到頂 -> 讓瀏覽器捲動，不換頁
+        if (e.deltaY < 0 && !bodyAtTop) return
+      }
+      
+      // 如果 (沒捲動條) 或 (已經撞到底/頂了)，才執行換頁
       e.preventDefault()
       if (wheelTimeout) return
+      
       if (e.deltaY > 0) nextPeriod()
       else if (e.deltaY < 0) previousPeriod()
       
@@ -91,34 +127,34 @@ export function useCalendarNavigation(currentDate, viewMode) {
       return
     }
 
-    // B. 年/日視圖 (有捲軸)
+    // B. 年/日視圖 (Container 內部捲動 + 視窗捲動 雙重判斷)
     let container = null
     if (viewMode.value === 'year') container = document.querySelector('.year-view')
     else if (viewMode.value === 'day') container = document.querySelector('.day-view-container')
 
     if (!container) return
 
-    const { scrollTop, scrollHeight, clientHeight } = container
-    const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 1
-    const isAtTop = scrollTop <= 0
+    const { scrollTop: cTop, scrollHeight: cHeight, clientHeight: cClient } = container
+    const containerAtBottom = Math.ceil(cTop + cClient) >= cHeight - 1
+    const containerAtTop = cTop <= 0
 
-    // 狀況 1: 往下滾 (Next) 且 撞到底部 -> 去下一頁的「頂部」
-    if (e.deltaY > 0 && isAtBottom) {
+    // 只有當 (容器到底 且 視窗到底) 時，才切換到下一頁
+    if (e.deltaY > 0 && containerAtBottom && bodyAtBottom) {
       e.preventDefault()
       if (wheelTimeout) return
       nextPeriod()
-      setScrollPosition('top') // 🔥 下一頁從頭開始看
+      setScrollPosition('top')
       
       wheelTimeout = true
       setTimeout(() => { wheelTimeout = false }, 300)
     }
     
-    // 狀況 2: 往上滾 (Prev) 且 撞到頂部 -> 去上一頁的「底部」
-    else if (e.deltaY < 0 && isAtTop) {
+    // 只有當 (容器到頂 且 視窗到頂) 時，才切換到上一頁
+    else if (e.deltaY < 0 && containerAtTop && bodyAtTop) {
       e.preventDefault()
       if (wheelTimeout) return
       previousPeriod()
-      setScrollPosition('bottom') // 🔥 上一頁從尾巴接續看
+      setScrollPosition('bottom')
       
       wheelTimeout = true
       setTimeout(() => { wheelTimeout = false }, 300)

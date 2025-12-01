@@ -72,6 +72,44 @@ const getEventsInitiatingAt = (hour) => {
   })
 }
 
+// 🔥 新增：計算重疊事件的寬度與位置
+const getOverlapStyle = (targetEvent) => {
+  // 1. 找出所有與目標事件「時間重疊」的事件
+  const overlaps = props.events.filter(e => {
+    const tStart = new Date(targetEvent.startTime).getTime()
+    const tEnd = new Date(targetEvent.endTime).getTime()
+    const eStart = new Date(e.startTime).getTime()
+    const eEnd = new Date(e.endTime).getTime()
+    
+    // 排除自己
+    if (e.id === targetEvent.id) return true
+    
+    // 判斷重疊: A開始 < B結束 && A結束 > B開始
+    return (tStart < eEnd && tEnd > eStart)
+  })
+
+  // 2. 如果沒有重疊，回傳預設值 (滿寬)
+  if (overlaps.length <= 1) {
+    return { width: '96%', left: '2%' }
+  }
+
+  // 3. 排序：確保計算順序一致 (依開始時間)
+  overlaps.sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+
+  // 4. 計算自己的位置
+  const index = overlaps.findIndex(e => e.id === targetEvent.id)
+  const total = overlaps.length
+  
+  // 寬度 = 100% / 重疊總數
+  const widthPercent = 100 / total
+  
+  // 左邊距 = 索引 * 寬度
+  return {
+    width: `${widthPercent}%`,
+    left: `${index * widthPercent}%`
+  }
+}
+
 // 2. 計算樣式 (Top, Height, Color)
 const getDayEventStyle = (event, hour) => {
   const eStart = new Date(event.startTime)
@@ -89,28 +127,34 @@ const getDayEventStyle = (event, hour) => {
   const topMinutes = visualStart.getMinutes()
   const pixelPerMinute = 1 
 
+// 🔥 呼叫剛剛寫的重疊計算
+  const layout = getOverlapStyle(event)
+
   return {
     top: `${topMinutes * pixelPerMinute}px`,
     height: `${Math.max(durationMinutes * pixelPerMinute, 25)}px`,
     
-    // 🔥 修正 1：改回純色，不要在這裡加亂碼
-    backgroundColor: event.color || '#557c55',
-    
-    // 🔥 修正 2：直接使用 opacity 屬性，這絕對會透明 (0.6 = 60% 不透明度)
-    opacity: 0.25,
-    
-    color: 'white',
+    // 🔥 修正 1：改回純色，不要在這裡加亂碼，修正事件排版:顏色與外觀 (下一步會優化)
+    backgroundColor:  (event.color || '#557c55') + 'E6',
+  
+    color: '#000000',
     position: 'absolute',
-    left: '4px',
-    right: '10px',
+    width: layout.width,
+    left: layout.left,
     zIndex: 10,
     
+    // 🔥 套用計算出來的寬度與位置
+    width: layout.width,
+    left: layout.left,
+    
+      // 🔥 修正 1：減弱文字陰影，或者直接拿掉
+    // 既然不加粗了，陰影太重會讓字看起來像重影。這裡改成極淡的白邊即可。
+    textShadow: '0 1px 0 rgba(255,255,255,0.3)', 
     // 加深一點邊框，因為變透明了，需要邊框來維持形狀感
     border: '1px solid rgba(0,0,0,0.1)',
     borderRadius: '4px',
-    
-    // 確保文字不會因為透明而太難閱讀，加個文字陰影
-    textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+    boxSizing: 'border-box', // 重要：確保邊框算在寬度內
+    fontweight:'normal'  
   }
 }
 
@@ -191,42 +235,53 @@ const formatTimeRange = (startIso, endIso) => {
 
 .day-event {
   position: absolute;
-  /* 預設樣式，style 會覆蓋 */
+  /* 預設樣式 */
   background: #557c55;
   color: white;
-  padding: 4px 8px;
-  border-radius: 3px;
-  font-size: 12px;
+  
+  /* 🔥 調整內距 */
+  padding: 2px 6px;
+  
+  /* 圓角 */
+  border-radius: 4px;
+  
+  /* 隱藏溢出 */
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  border-left: 3px solid rgba(0,0,0,0.2);
+  transition: all 0.1s;
   
-  /* Flex 讓文字垂直置中 (如果事件很短) */
+  /* 🔥 Google 風格陰影：輕微的浮起感 */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  
+  /* Flex 佈局讓文字整齊 */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
 
+/* Hover 效果：加深陰影，放大一點點 */
 .day-event:hover {
-  filter: brightness(0.95);
-  transform: translateX(1px);
-  z-index: 20 !important; /* Hover 時浮到最上層 */
+  z-index: 50 !important; /* 確保浮在最上面 */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  filter: brightness(1.05); /* 稍微變亮 */
 }
 
+/* 標題文字 */
 .day-event strong {
-  font-weight: 500;
+  font-weight: 600; /* 加粗 */
+  font-size: 12px;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 12px;
-  line-height: 1.4;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2); /* 讓文字在淺色背景也清楚 */
 }
 
+/* 時間文字 */
 .event-time {
   font-size: 10px;
-  opacity: 0.9;
+  opacity: 0.9; /* 稍微淡一點，區分層次 */
+  margin-bottom: 2px;
 }
 
 .event-desc {
