@@ -1,195 +1,150 @@
 // src/composables/useCalendarNavigation.js
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, nextTick } from 'vue'
 
 export function useCalendarNavigation(currentDate, viewMode) {
-  
-  // 1. 核心計算邏輯 (從 CalendarApp 搬出來並優化)
-  const previousPeriod = () => {
-    const d = new Date(currentDate.value)
-    if (viewMode.value === 'year') d.setFullYear(d.getFullYear() - 1)
-    else if (viewMode.value === 'month') d.setMonth(d.getMonth() - 1)
-    else d.setDate(d.getDate() - 1)
-    currentDate.value = d
-  }
+  let touchStartX = 0
+  let touchStartY = 0
+  let isThrottled = false 
+  let isZooming = false 
 
-  const nextPeriod = () => {
-    const d = new Date(currentDate.value)
-    if (viewMode.value === 'year') d.setFullYear(d.getFullYear() + 1)
-    else if (viewMode.value === 'month') d.setMonth(d.getMonth() + 1)
-    else d.setDate(d.getDate() + 1)
-    currentDate.value = d
-  }
-
-  const goToToday = () => {
-    currentDate.value = new Date()
-  }
-
-  // 2. 互動監聽邏輯
-  const handleKeydown = (e) => {
-    // 避免在輸入框打字時觸發
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
-    if (e.key === 'ArrowLeft') previousPeriod()
-    if (e.key === 'ArrowRight') nextPeriod()
-  }
-  // 🔥 新增：捲動歸零 helper
-// ... 前面的程式碼保持不變 ...
-
-  // 🔥 修改：捲動位置控制 helper (支援 top / bottom)
-  const setScrollPosition = (position) => {
-    // 使用 setTimeout 確保在 Vue 更新 DOM 之後執行
-    setTimeout(() => {
-      let container = null
-      if (viewMode.value === 'year') {
-        container = document.querySelector('.year-view')
-      } else if (viewMode.value === 'day') {
-        container = document.querySelector('.day-view-container')
-      }
+  // --- 滾動位置銜接邏輯 (配合上下換頁的連續感) ---
+  const restoreScrollPosition = (direction) => {
+    nextTick(() => {
+      // 找出目前畫面上的滾動容器
+      const container = document.querySelector('.day-view-container, .year-view, .month-scroll-wrapper')
       
       if (container) {
-        if (position === 'top') {
-          container.scrollTop = 0 // 回到頂部 (00:00 或 1月)
+        if (direction === 'prev') {
+          // 往回翻 (昨天/去年/上個月)
+          // 因為是「由上往下拉」，邏輯上我們是想看上面的內容
+          // 所以換頁後，應該停留在新頁面的「最底部」，模擬無縫連接
+          container.scrollTop = container.scrollHeight
         } else {
-          container.scrollTop = container.scrollHeight // 到底部 (23:00 或 12月)
+          // 往後翻 (明天/明年/下個月)
+          // 因為是「由下往上推」，邏輯上我們是想看下面的內容
+          // 所以換頁後，應該停留在新頁面的「最頂部」
+          container.scrollTop = 0
         }
       }
-    }, 10)
+    })
   }
 
-  // 滾輪邏輯
-  let wheelTimeout = false
+  // --- 換頁核心邏輯 ---
+  const changePage = (direction) => {
+    if (isThrottled) return
+    isThrottled = true
+    setTimeout(() => isThrottled = false, 400) 
 
-  // src/composables/useCalendarNavigation.js
+    const date = new Date(currentDate.value)
+    const offset = direction === 'next' ? 1 : -1
 
+    if (viewMode.value === 'year') {
+      date.setFullYear(date.getFullYear() + offset)
+    } else if (viewMode.value === 'month') {
+      date.setMonth(date.getMonth() + offset)
+    } else {
+      date.setDate(date.getDate() + offset)
+    }
+    
+    currentDate.value = date
+
+    // 呼叫滾動銜接
+    restoreScrollPosition(direction)
+  }
+
+  const previousPeriod = () => changePage('prev')
+  const nextPeriod = () => changePage('next')
+  const goToToday = () => currentDate.value = new Date()
+
+  // --- 滾輪智慧判斷 (桌機版維持不變) ---
   const handleWheel = (e) => {
-    // ------------------------------------------------
-    // 0. 全域檢查：如果滑鼠指標下有開啟的 Modal (遮罩)，則完全不處理
-    // (雖然我們在 Modal 加了 @wheel.stop，但這是一個雙重保險)
-    // ------------------------------------------------
-    const target = e.target
-    if (target.closest('.modal-overlay') || target.closest('.list-modal-overlay')) {
-      return // 在彈窗上，直接忽略導航邏輯
-    }
+    const container = e.target.closest('.day-view-container, .year-view, .month-scroll-wrapper, .modal-content, .list-content')
 
-    // ------------------------------------------------
-    // 1. 水平捲動 (Shift + 滾輪) - 永遠觸發換頁
-    // ------------------------------------------------
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      e.preventDefault()
-      if (wheelTimeout) return
-      
-      if (e.deltaX > 0) {
-        nextPeriod()
-        setScrollPosition('top')
-      } else {
-        previousPeriod()
-        setScrollPosition('top')
+    if (container) {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const canScrollVertically = scrollHeight > clientHeight
+
+      if (canScrollVertically) {
+        if (e.deltaY < 0 && scrollTop > 0) return
+        if (e.deltaY > 0 && Math.abs(scrollHeight - clientHeight - scrollTop) > 1) return
       }
-      
-      wheelTimeout = true
-      setTimeout(() => { wheelTimeout = false }, 200)
-      return
     }
 
-    // ------------------------------------------------
-    // 2. 垂直捲動 (包含 MonthView 的特殊處理)
-    // ------------------------------------------------
-    
-    // 檢查「視窗本身」是否出現了捲動條 (例如因為縮放)
-    // document.documentElement.scrollHeight 是整個網頁高度
-    // window.innerHeight 是視窗可視高度
-    const bodyIsScrollable = document.documentElement.scrollHeight > window.innerHeight
-    const scrollTop = window.scrollY || document.documentElement.scrollTop
-    
-    // 判斷視窗是否撞頂或撞底 (容許 1px 誤差)
-    const bodyAtTop = scrollTop <= 0
-    const bodyAtBottom = Math.ceil(scrollTop + window.innerHeight) >= document.documentElement.scrollHeight
-
-    // A. 如果是「月」視圖
-    if (viewMode.value === 'month') {
-      // 🔥 關鍵修正：如果網頁可以捲動，我們必須優先讓它捲動
-      if (bodyIsScrollable) {
-        // 如果想往下滾，但還沒到底 -> 讓瀏覽器捲動，不換頁
-        if (e.deltaY > 0 && !bodyAtBottom) return 
-        
-        // 如果想往上滾，但還沒到頂 -> 讓瀏覽器捲動，不換頁
-        if (e.deltaY < 0 && !bodyAtTop) return
-      }
-      
-      // 如果 (沒捲動條) 或 (已經撞到底/頂了)，才執行換頁
-      e.preventDefault()
-      if (wheelTimeout) return
-      
-      if (e.deltaY > 0) nextPeriod()
-      else if (e.deltaY < 0) previousPeriod()
-      
-      wheelTimeout = true
-      setTimeout(() => { wheelTimeout = false }, 50)
-      return
-    }
-
-    // B. 年/日視圖 (Container 內部捲動 + 視窗捲動 雙重判斷)
-    let container = null
-    if (viewMode.value === 'year') container = document.querySelector('.year-view')
-    else if (viewMode.value === 'day') container = document.querySelector('.day-view-container')
-
-    if (!container) return
-
-    const { scrollTop: cTop, scrollHeight: cHeight, clientHeight: cClient } = container
-    const containerAtBottom = Math.ceil(cTop + cClient) >= cHeight - 1
-    const containerAtTop = cTop <= 0
-
-    // 只有當 (容器到底 且 視窗到底) 時，才切換到下一頁
-    if (e.deltaY > 0 && containerAtBottom && bodyAtBottom) {
-      e.preventDefault()
-      if (wheelTimeout) return
-      nextPeriod()
-      setScrollPosition('top')
-      
-      wheelTimeout = true
-      setTimeout(() => { wheelTimeout = false }, 300)
-    }
-    
-    // 只有當 (容器到頂 且 視窗到頂) 時，才切換到上一頁
-    else if (e.deltaY < 0 && containerAtTop && bodyAtTop) {
-      e.preventDefault()
-      if (wheelTimeout) return
-      previousPeriod()
-      setScrollPosition('bottom')
-      
-      wheelTimeout = true
-      setTimeout(() => { wheelTimeout = false }, 300)
-    }
+    if (e.deltaY < 0) previousPeriod()
+    else if (e.deltaY > 0) nextPeriod()
   }
 
-  // ... 後面的 onMounted 等保持不變 ...
-  
+  // --- 觸控邏輯 (🔥 修改為上下換頁 + 邊界檢測) ---
+  const handleTouchStart = (e) => {
+    if (e.touches.length > 1) {
+      isZooming = true
+      return
+    }
+    isZooming = false
+    touchStartX = e.changedTouches[0].screenX
+    touchStartY = e.changedTouches[0].screenY
+  }
 
-  // 手機滑動 (Touch)
-  let touchStartX = 0
-  const handleTouchStart = (e) => { touchStartX = e.touches[0].clientX }
   const handleTouchEnd = (e) => {
-    const touchEndX = e.changedTouches[0].clientX
-    const diff = touchStartX - touchEndX
-    if (Math.abs(diff) > 50) { // 滑動超過 50px 才算
-      if (diff > 0) nextPeriod() // 向左滑 -> 下一頁
-      else previousPeriod()      // 向右滑 -> 上一頁
+    // 如果是縮放中，不處理滑動
+    if (isZooming || e.touches.length > 0) {
+      isZooming = false
+      return
+    }
+
+    const touchEndX = e.changedTouches[0].screenX
+    const touchEndY = e.changedTouches[0].screenY
+    
+    const diffX = touchEndX - touchStartX
+    const diffY = touchEndY - touchStartY // 正數代表向下滑(Pull Down)，負數代表向上滑(Push Up)
+
+    // 🔥 邏輯修改 1: 如果水平移動大於垂直移動，視為左右滑，這裡「不處理」(或是保留左右換頁亦可，依您需求)
+    // 您的需求是改成上下換頁，所以這裡我們忽略左右滑動，避免誤觸
+    if (Math.abs(diffX) > Math.abs(diffY)) return
+
+    // 🔥 邏輯修改 2: 邊界檢測 (Overscroll Detection)
+    const scrollContainer = e.target.closest('.day-view-container, .year-view, .month-scroll-wrapper')
+    
+    let isAtTop = true
+    let isAtBottom = true
+
+    if (scrollContainer) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer
+      // 容許 2px 誤差
+      isAtTop = scrollTop <= 2
+      isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 2
+    }
+
+    const SWIPE_THRESHOLD = 80 // 滑動門檻
+
+    // 判定滑動方向與動作
+    if (Math.abs(diffY) > SWIPE_THRESHOLD) {
+      // ⬇️ 向下滑動 (Pull Down) -> 預期是看「上面」的內容 (上一頁)
+      if (diffY > 0) {
+        // 只有在「已經捲動到最頂端」時，才觸發上一頁
+        if (isAtTop) {
+           previousPeriod()
+        }
+      } 
+      // ⬆️ 向上滑動 (Push Up) -> 預期是看「下面」的內容 (下一頁)
+      else {
+        // 只有在「已經捲動到最底端」時，才觸發下一頁
+        if (isAtBottom) {
+           nextPeriod()
+        }
+      }
     }
   }
 
-  // 3. 自動掛載與卸載監聽器
   onMounted(() => {
-    window.addEventListener('keydown', handleKeydown)
-    // 建議綁定在特定容器上，這裡先綁 window 方便全域使用
     window.addEventListener('touchstart', handleTouchStart)
     window.addEventListener('touchend', handleTouchEnd)
   })
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
     window.removeEventListener('touchstart', handleTouchStart)
     window.removeEventListener('touchend', handleTouchEnd)
   })
 
-  // 回傳給組件使用
   return { previousPeriod, nextPeriod, goToToday, handleWheel }
 }

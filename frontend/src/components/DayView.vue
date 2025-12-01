@@ -1,3 +1,4 @@
+<!-- src/components/DayView.vue -->
 <template>
   <div class="day-view">
     <div class="day-view-container">
@@ -16,21 +17,23 @@
           class="hour-block" 
           @click="emit('add-event-at-time', hour - 1)"
         >
-          <!-- 篩選「視覺上」應該從這個小時開始顯示的事件 -->
+          <!-- 從我們計算好的佈局 (dayLayout) 中取出要在這個小時開始顯示的事件 -->
           <div 
-            v-for="event in getEventsInitiatingAt(hour - 1)"
-            :key="event.id"
+            v-for="layoutItem in getEventsForHour(hour - 1)"
+            :key="layoutItem.event.id"
             class="day-event"
-            :style="getDayEventStyle(event, hour - 1)"
-            @click.stop="emit('edit-event', event)"
+            :style="getLayoutStyle(layoutItem)"
+            @click.stop="emit('edit-event', layoutItem.event)"
           >
-            <strong>{{ event.title }}</strong>
+            <strong>{{ layoutItem.event.title }}</strong>
+            
+            <!-- 🔥 修改：強制顯示 完整日期+時間 -->
             <div class="event-time">
-              {{ formatTimeRange(event.startTime, event.endTime) }}
+              {{ formatFullDateTime(layoutItem.event.startTime, layoutItem.event.endTime) }}
             </div>
-            <!-- 如果高度夠高才顯示描述，避免擠在一起 -->
-            <div v-if="getEventDuration(event) > 45 && event.description" class="event-desc">
-              {{ event.description }}
+            
+            <div v-if="layoutItem.durationMinutes > 45 && layoutItem.event.description" class="event-desc">
+              {{ layoutItem.event.description }}
             </div>
           </div>
         </div>
@@ -40,6 +43,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { parseDate } from '../utils/dateFormatter'
+
 const props = defineProps({
   currentDate: { type: Date, required: true },
   events: { type: Array, default: () => [] }
@@ -47,259 +53,212 @@ const props = defineProps({
 
 const emit = defineEmits(['add-event-at-time', 'edit-event'])
 
-// 1. 篩選出「應該在這個小時格子開始渲染」的事件
-const getEventsInitiatingAt = (hour) => {
-  const currentStart = new Date(props.currentDate)
-  currentStart.setHours(0, 0, 0, 0)
-  const currentEnd = new Date(props.currentDate)
-  currentEnd.setHours(23, 59, 59, 999)
+// 🔥 核心：全域排版引擎 (Layout Engine)
+const dayLayout = computed(() => {
+  const dayStart = new Date(props.currentDate); dayStart.setHours(0,0,0,0);
+  const dayEnd = new Date(props.currentDate); dayEnd.setHours(23,59,59,999);
 
-  return props.events.filter(event => {
-    const eStart = new Date(event.startTime)
-    const eEnd = new Date(event.endTime)
+  const visualEvents = props.events
+    .map(e => {
+      const s = parseDate(e.startTime)
+      const end = parseDate(e.endTime)
+      
+      if (isNaN(s.getTime()) || isNaN(end.getTime())) return null
+      if (end < dayStart || s > dayEnd) return null
 
-    // 排除完全不在今天的事件
-    if (eEnd < currentStart || eStart > currentEnd) return false
+      const effectiveStart = s < dayStart ? dayStart : s
+      const effectiveEnd = end > dayEnd ? dayEnd : end
+      
+      return {
+        event: e,
+        id: String(e.id),
+        startMs: effectiveStart.getTime(),
+        endMs: effectiveEnd.getTime(),
+        startHour: effectiveStart.getHours(),
+        isStartToday: s >= dayStart,
+        durationMinutes: (effectiveEnd - effectiveStart) / 60000
+      }
+    })
+    .filter(item => item !== null)
 
-    // 判斷邏輯：
-    // A. 如果事件是「今天」開始的，那它應該出現在它的 startHour 格子
-    if (eStart >= currentStart) {
-      return eStart.getHours() === hour
+  visualEvents.sort((a, b) => {
+    if (a.startMs !== b.startMs) return a.startMs - b.startMs
+    return b.durationMinutes - a.durationMinutes
+  })
+
+  const clusters = []
+  let currentCluster = []
+  let clusterEnd = -1
+
+  visualEvents.forEach(item => {
+    if (currentCluster.length === 0) {
+      currentCluster.push(item)
+      clusterEnd = item.endMs
+    } else {
+      if (item.startMs < clusterEnd) {
+        currentCluster.push(item)
+        if (item.endMs > clusterEnd) clusterEnd = item.endMs
+      } else {
+        clusters.push(currentCluster)
+        currentCluster = [item]
+        clusterEnd = item.endMs
+      }
     }
+  })
+  if (currentCluster.length > 0) clusters.push(currentCluster)
+
+  const finalLayout = [] 
+
+  clusters.forEach(cluster => {
+    const columns = [] 
     
-    // B. 如果事件是「昨天以前」開始的 (跨日)，那它今天應該從 00:00 (hour 0) 開始顯示
+    cluster.forEach(item => {
+      let placed = false
+      for (let i = 0; i < columns.length; i++) {
+        if (columns[i] <= item.startMs) {
+          columns[i] = item.endMs 
+          item.colIndex = i
+          placed = true
+          break
+        }
+      }
+      if (!placed) {
+        columns.push(item.endMs)
+        item.colIndex = columns.length - 1
+      }
+    })
+
+    const totalCols = columns.length
+    const widthPct = 100 / totalCols
+
+    cluster.forEach(item => {
+      item.width = `${widthPct}%`
+      item.left = `${item.colIndex * widthPct}%`
+      finalLayout.push(item)
+    })
+  })
+
+  return finalLayout
+})
+
+const getEventsForHour = (hour) => {
+  return dayLayout.value.filter(item => {
+    if (item.isStartToday) {
+      return item.startHour === hour
+    }
     return hour === 0
   })
 }
 
-// 🔥 新增：計算重疊事件的寬度與位置
-const getOverlapStyle = (targetEvent) => {
-  // 1. 找出所有與目標事件「時間重疊」的事件
-  const overlaps = props.events.filter(e => {
-    const tStart = new Date(targetEvent.startTime).getTime()
-    const tEnd = new Date(targetEvent.endTime).getTime()
-    const eStart = new Date(e.startTime).getTime()
-    const eEnd = new Date(e.endTime).getTime()
-    
-    // 排除自己
-    if (e.id === targetEvent.id) return true
-    
-    // 判斷重疊: A開始 < B結束 && A結束 > B開始
-    return (tStart < eEnd && tEnd > eStart)
-  })
-
-  // 2. 如果沒有重疊，回傳預設值 (滿寬)
-  if (overlaps.length <= 1) {
-    return { width: '96%', left: '2%' }
+const getLayoutStyle = (layoutItem) => {
+  const d = new Date(layoutItem.startMs)
+  let topMinutes = d.getMinutes()
+  
+  if (!layoutItem.isStartToday) {
+    topMinutes = 0
   }
 
-  // 3. 排序：確保計算順序一致 (依開始時間)
-  overlaps.sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-
-  // 4. 計算自己的位置
-  const index = overlaps.findIndex(e => e.id === targetEvent.id)
-  const total = overlaps.length
-  
-  // 寬度 = 100% / 重疊總數
-  const widthPercent = 100 / total
-  
-  // 左邊距 = 索引 * 寬度
   return {
-    width: `${widthPercent}%`,
-    left: `${index * widthPercent}%`
-  }
-}
-
-// 2. 計算樣式 (Top, Height, Color)
-const getDayEventStyle = (event, hour) => {
-  const eStart = new Date(event.startTime)
-  const eEnd = new Date(event.endTime)
-  
-  const dayStart = new Date(props.currentDate)
-  dayStart.setHours(0, 0, 0, 0)
-  const dayEnd = new Date(props.currentDate)
-  dayEnd.setHours(24, 0, 0, 0)
-
-  const visualStart = eStart < dayStart ? dayStart : eStart
-  const visualEnd = eEnd > dayEnd ? dayEnd : eEnd
-
-  const durationMinutes = (visualEnd - visualStart) / (1000 * 60)
-  const topMinutes = visualStart.getMinutes()
-  const pixelPerMinute = 1 
-
-// 🔥 呼叫剛剛寫的重疊計算
-  const layout = getOverlapStyle(event)
-
-  return {
-    top: `${topMinutes * pixelPerMinute}px`,
-    height: `${Math.max(durationMinutes * pixelPerMinute, 25)}px`,
-    
-    // 🔥 修正 1：改回純色，不要在這裡加亂碼，修正事件排版:顏色與外觀 (下一步會優化)
-    backgroundColor:  (event.color || '#557c55') + 'E6',
-  
-    color: '#000000',
     position: 'absolute',
-    width: layout.width,
-    left: layout.left,
-    zIndex: 10,
-    
-    // 🔥 套用計算出來的寬度與位置
-    width: layout.width,
-    left: layout.left,
-    
-      // 🔥 修正 1：減弱文字陰影，或者直接拿掉
-    // 既然不加粗了，陰影太重會讓字看起來像重影。這裡改成極淡的白邊即可。
+    top: `${topMinutes}px`,
+    height: `${Math.max(layoutItem.durationMinutes, 25)}px`,
+    width: layoutItem.width,
+    left: layoutItem.left,
+    backgroundColor: (layoutItem.event.color || '#557c55') + 'E6',
+    color: '#000000',
+    zIndex: 10 + layoutItem.colIndex,
     textShadow: '0 1px 0 rgba(255,255,255,0.3)', 
-    // 加深一點邊框，因為變透明了，需要邊框來維持形狀感
     border: '1px solid rgba(0,0,0,0.1)',
     borderRadius: '4px',
-    boxSizing: 'border-box', // 重要：確保邊框算在寬度內
-    fontweight:'normal'  
+    boxSizing: 'border-box',
+    fontWeight: 'normal'
   }
 }
 
-// 3. 輔助：計算時長分鐘數 (用於判斷要不要顯示描述)
-const getEventDuration = (event) => {
-  const s = new Date(event.startTime); const e = new Date(event.endTime)
-  return (e - s) / 60000
-}
+// 🔥 新增：強制顯示完整日期時間格式
+const formatFullDateTime = (startIso, endIso) => {
+  const s = parseDate(startIso)
+  const e = parseDate(endIso)
+  
+  // 格式：MM/DD HH:mm
+  const format = (d) => {
+    const month = d.getMonth() + 1
+    const date = d.getDate()
+    const hh = String(d.getHours()).padStart(2, '0')
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    return `${month}/${date} ${hh}:${mm}`
+  }
 
-// 4. 格式化時間文字
-const formatTimeRange = (startIso, endIso) => {
-  const s = new Date(startIso)
-  const e = new Date(endIso)
-  const format = (d) => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
-  return `${format(s)} - ${format(e)}`
+  return `${format(s)} ~ ${format(e)}`
 }
 </script>
 
 <style scoped>
-.day-view {
-  padding: 20px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  overflow: hidden;
-}
+/* 樣式保持原樣 */
+.day-view { padding: 20px; height: 100%; display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden; }
+.day-view-container { display: grid; grid-template-columns: 60px 1fr; border: 1px solid #d1d5db; border-radius: 4px; background: white; flex: 1; overflow-y: auto; height: 0; }
+.time-column { background: #fafbf9; border-right: 1px solid #d1d5db; }
+.time-slot { height: 60px; padding: 8px; border-bottom: 1px solid #e0e0e0; font-size: 11px; color: #666; text-align: center; font-family: 'Roboto', sans-serif; letter-spacing: 0.05em; font-weight: 500; box-sizing: border-box; }
+.events-column { background: white; position: relative; }
+.hour-block { height: 60px; border-bottom: 1px solid #999; position: relative; overflow: visible; }
+.hour-block:hover { background: #fcfcfc; }
+.day-event { position: absolute; background: #557c55; color: white; padding: 2px 6px; border-radius: 4px; overflow: hidden; cursor: pointer; transition: all 0.1s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: flex-start; }
+.day-event:hover { z-index: 50 !important; box-shadow: 0 4px 8px rgba(0,0,0,0.3); filter: brightness(1.05); }
+.day-event strong { font-weight: 600; font-size: 12px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+.event-time { font-size: 10px; opacity: 0.9; margin-bottom: 2px; }
+.event-desc { font-size: 11px; margin-top: 2px; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-.day-view-container {
-  display: grid;
-  grid-template-columns: 60px 1fr;
-  border: 1px solid #d1d5db; /* 加深邊框 */
-  border-radius: 4px;
-  background: white;
-  flex: 1;
-  overflow-y: auto; 
-  /* height: 0 是 Flex trick，讓它正確捲動 */
-  height: 0; 
-}
+/* 
+   🔥 RWD 修正：
+   原本這裡有 left: 2px !important; right: 2px !important; 
+   這會導致手機版強行覆蓋 JS 算出來的寬度，導致事件疊在一起。
+   現在移除該設定，手機版就會乖乖聽 JS 的話排版了。
+*/
+/* src/components/DayView.vue */
 
-.time-column {
-  background: #fafbf9;
-  border-right: 1px solid #d1d5db;
-}
-
-.time-slot {
-  height: 60px; /* 每格 60px */
-  padding: 8px;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 11px;
-  color: #666;
-  text-align: center;
-  font-family: 'Roboto', sans-serif;
-  letter-spacing: 0.05em;
-  font-weight: 500;
-  box-sizing: border-box;
-}
-
-.events-column {
-  background: white;
-  position: relative;
-}
-
-.hour-block {
-  height: 60px; /* 必須跟 time-slot 一樣高 */
-  border-bottom: 1px solid #999;
-  position: relative; /* 讓絕對定位的事件參考這裡 */
-  cursor: pointer;
-  transition: background 0.2s;
-  
-  /* 🔥 關鍵：不能設 overflow: hidden，這樣長事件才能跨越格子顯示！ */
-  overflow: visible; 
-}
-
-.hour-block:hover {
-  background: #fcfcfc;
-}
-
-.day-event {
-  position: absolute;
-  /* 預設樣式 */
-  background: #557c55;
-  color: white;
-  
-  /* 🔥 調整內距 */
-  padding: 2px 6px;
-  
-  /* 圓角 */
-  border-radius: 4px;
-  
-  /* 隱藏溢出 */
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.1s;
-  
-  /* 🔥 Google 風格陰影：輕微的浮起感 */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  
-  /* Flex 佈局讓文字整齊 */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-/* Hover 效果：加深陰影，放大一點點 */
-.day-event:hover {
-  z-index: 50 !important; /* 確保浮在最上面 */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  filter: brightness(1.05); /* 稍微變亮 */
-}
-
-/* 標題文字 */
-.day-event strong {
-  font-weight: 600; /* 加粗 */
-  font-size: 12px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.2); /* 讓文字在淺色背景也清楚 */
-}
-
-/* 時間文字 */
-.event-time {
-  font-size: 10px;
-  opacity: 0.9; /* 稍微淡一點，區分層次 */
-  margin-bottom: 2px;
-}
-
-.event-desc {
-  font-size: 11px;
-  margin-top: 2px;
-  opacity: 0.85;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* 最多顯示兩行 */
-  -webkit-box-orient: vertical;
-}
-
-/* RWD */
+/* 🔥 RWD 手機版優化 */
 @media (max-width: 768px) {
-  .day-view { padding: 10px; }
-  .day-view-container { grid-template-columns: 50px 1fr; }
-  .time-slot { font-size: 10px; padding: 8px 2px; }
-  .day-event { padding: 2px 4px; left: 2px !important; right: 2px !important; }
+  .day-view { 
+    padding: 0; /* 移除外圍內距，爭取空間 */
+  }
+  
+  .day-view-container { 
+    /* 縮小左側時間軸寬度 (60px -> 40px)，讓右邊事件區大一點 */
+    grid-template-columns: 40px 1fr; 
+    border: none; /* 手機版移除外框，更簡潔 */
+  }
+  
+  /* 時間軸字體縮小 */
+  .time-slot { 
+    font-size: 10px; 
+    padding: 8px 2px; 
+    text-align: right;
+    padding-right: 5px;
+  }
+  
+  /* 事件區調整 */
+  .day-event { 
+    /* 移除左右強制邊距，讓它聽 Layout Engine 的話 */
+    /* padding: 2px 4px; */
+    
+    /* 字體調整 */
+    padding: 1px 3px;
+    border-radius: 3px;
+  }
+  
+  .day-event strong {
+    font-size: 10px; /* 標題縮小 */
+  }
+  
+  .event-time {
+    font-size: 9px; /* 時間縮小 */
+    line-height: 1;
+    margin-bottom: 0;
+    opacity: 0.8;
+  }
+  
+  .event-desc {
+    display: none; /* 手機版空間太小，直接隱藏描述，只顯示標題與時間 */
+  }
 }
 </style>

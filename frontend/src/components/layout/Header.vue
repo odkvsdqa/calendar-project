@@ -1,7 +1,7 @@
 <template>
   <div class="header">
-    <div class="header-content">   
-       <div class="logo-wrapper">
+    <div class="header-content">
+      <div class="logo-wrapper">
         <SkjlLogo layout="horizontal" :show-tagline="false" mode="default" />
       </div>
       <!-- 右側區塊 -->
@@ -9,15 +9,11 @@
         <!-- 導航 -->
         <div class="nav-links">
           <router-link to="/calendar" class="nav-link">日曆</router-link>
-          <router-link 
-            v-if="isAdmin" 
-            to="/admin" 
-            class="nav-link"
-          >
+          <router-link v-if="isAdmin" to="/admin" class="nav-link">
             後台
           </router-link>
         </div>
-        
+
         <div class="divider"></div>
 
         <!-- 用戶區 -->
@@ -26,23 +22,40 @@
             <span class="username">{{ username }}</span>
             <span v-if="isAdmin" class="admin-badge">ADMIN</span>
           </div>
-          <button class="btn-logout" @click="openLogoutModal">
-            登出
-          </button>
+          <button class="btn-logout" @click="openLogoutModal">登出</button>
         </div>
       </div>
     </div>
 
     <!-- 登出確認彈窗 -->
     <Teleport to="body">
-      <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
+      <div
+        v-if="showLogoutModal"
+        class="modal-overlay"
+        @click.self="showLogoutModal = false"
+      >
         <div class="confirm-box">
-          <h3>準備要離開了嗎？</h3>
-          <p>確定要登出目前的帳號嗎？</p>
-          <div class="confirm-actions">
-            <button class="btn-cancel" @click="showLogoutModal = false">取消</button>
-            <button class="btn-confirm" @click="confirmLogout">確定登出</button>
-          </div>
+          <!-- ✅ 替換登出確認窗 -->
+          <BaseModal
+            :show="showLogoutModal"
+            title="準備要離開了嗎？"
+            width="320px"
+            @close="showLogoutModal = false"
+          >
+            <p style="text-align: center; color: #666; margin-bottom: 20px">
+              確定要登出目前的帳號嗎？
+            </p>
+
+            <!-- 自定義 Footer 按鈕 -->
+            <div style="display: flex; gap: 10px; justify-content: center">
+              <button class="btn-cancel" @click="showLogoutModal = false">
+                取消
+              </button>
+              <button class="btn-confirm" @click="confirmLogout">
+                確定登出
+              </button>
+            </div>
+          </BaseModal>
         </div>
       </div>
     </Teleport>
@@ -50,26 +63,28 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import SkjlLogo from '../SkjlLogo.vue'
+import { computed, ref } from "vue";
+import SkjlLogo from "../SkjlLogo.vue";
+import BaseModal from "../common/BaseModal.vue";
+
 const props = defineProps({
   username: { type: String, required: true },
-  userRole: { type: String, default: 'USER' }
-})
+  userRole: { type: String, default: "USER" },
+});
 
-const emit = defineEmits(['logout'])
+const emit = defineEmits(["logout"]);
 
-const isAdmin = computed(() => props.userRole === 'ADMIN')
-const showLogoutModal = ref(false)
+const isAdmin = computed(() => props.userRole === "ADMIN");
+const showLogoutModal = ref(false);
 
 const openLogoutModal = () => {
-  showLogoutModal.value = true
-}
+  showLogoutModal.value = true;
+};
 
 const confirmLogout = () => {
-  showLogoutModal.value = false
-  emit('logout')
-}
+  showLogoutModal.value = false;
+  emit("logout");
+};
 </script>
 
 <style scoped>
@@ -151,9 +166,10 @@ const confirmLogout = () => {
   font-size: 13px;
   letter-spacing: 0.03em;
 }
-.username, .nav-link {
+.username,
+.nav-link {
   /* 帶一點點綠的深灰，比純黑柔和 */
-  color: #4a5d4a; 
+  color: #4a5d4a;
 }
 .admin-badge {
   font-size: 10px;
@@ -259,8 +275,12 @@ const confirmLogout = () => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* RWD */
@@ -268,31 +288,31 @@ const confirmLogout = () => {
   .header-content {
     padding: 0 20px;
   }
-  
+
   .logo {
     font-size: 20px;
   }
-  
+
   .tagline {
     display: none;
   }
-  
+
   .divider {
     display: none;
   }
-  
+
   .username {
     display: none;
   }
-  
+
   .admin-badge {
     display: none;
   }
-  
+
   .nav-links {
     gap: 15px;
   }
-  
+
   .nav-link {
     font-size: 12px;
   }

@@ -1,5 +1,5 @@
 <template>
-   <!-- 1. 在最外層容器加上 @wheel 監聽滾輪 -->
+  <!-- 1. 在最外層容器加上 @wheel 監聽滾輪 -->
   <div class="container" @wheel="handleWheel">
     <!-- 控制列 -->
     <div class="controls">
@@ -7,8 +7,8 @@
       <div class="left-group">
         <button class="btn-today" @click="goToToday">今天</button>
       </div>
-      
-       <!-- 3. 中間：左右箭頭包夾標題 -->
+
+      <!-- 3. 中間：左右箭頭包夾標題 -->
       <div class="center-group">
         <button class="nav-arrow" @click="previousPeriod">◀</button>
         <div class="date-title">{{ currentPeriodText }}</div>
@@ -18,20 +18,20 @@
       <!-- 右側: 視圖切換 + 新增按鈕 -->
       <div class="right-group">
         <div class="btn-group">
-          <button 
-            @click="viewMode = 'year'" 
+          <button
+            @click="viewMode = 'year'"
             :class="{ active: viewMode === 'year' }"
           >
             年
           </button>
-          <button 
-            @click="viewMode = 'month'" 
+          <button
+            @click="viewMode = 'month'"
             :class="{ active: viewMode === 'month' }"
           >
             月
           </button>
-          <button 
-            @click="viewMode = 'day'" 
+          <button
+            @click="viewMode = 'day'"
             :class="{ active: viewMode === 'day' }"
           >
             日
@@ -42,7 +42,7 @@
     </div>
 
     <!-- 後續載入時的 Loading 遮罩 -->
-     <!-- ✅ 替換為共用組件 -->
+    <!-- ✅ 替換為共用組件 -->
     <LoadingOverlay :visible="loading" />
 
     <div v-if="error" class="error">{{ error }}</div>
@@ -52,7 +52,7 @@
       :current-date="currentDate"
       :events="events"
       @go-to-date="goToDate"
-       @change-view="changeViewMode"
+      @change-view="changeViewMode"
     />
 
     <MonthView
@@ -61,7 +61,7 @@
       :events="events"
       @add-event="openEventModal"
       @edit-event="editEvent"
-       @change-view="changeViewMode"
+      @change-view="changeViewMode"
     />
 
     <DayView
@@ -70,7 +70,7 @@
       :events="events"
       @add-event-at-time="openEventModalAtTime"
       @edit-event="editEvent"
-       @change-view="changeViewMode"
+      @change-view="changeViewMode"
     />
 
     <EventModal
@@ -82,91 +82,91 @@
       @delete="deleteEvent"
     />
   </div>
-
 </template>
 
 <script setup>
-import { formatDateTimeLocal, formatToIsoString } from '../utils/dateFormatter'
-import { ref, computed } from 'vue'
-import YearView from './YearView.vue'
-import MonthView from './MonthView.vue'
-import DayView from './DayView.vue'
-import EventModal from './EventModal.vue'
-import { eventApi } from '../services/api'
-import { handleApiError } from '../utils/errorHandle'
-import { useToast } from '../composables/useToast'
-import { useCalendarNavigation } from '../composables/useCalendarNavigation' // 🔥 引入
-import LoadingOverlay from './common/LoadingOverlay.vue'
+import { formatDateTimeLocal, formatToIsoString } from "../utils/dateFormatter";
+import { ref, computed } from "vue";
+import YearView from "./YearView.vue";
+import MonthView from "./MonthView.vue";
+import DayView from "./DayView.vue";
+import EventModal from "./EventModal.vue";
+import { eventApi } from "../services/api";
+import { handleApiError } from "../utils/errorHandle";
+import { useToast } from "../composables/useToast";
+import { useCalendarNavigation } from "../composables/useCalendarNavigation"; // 🔥 引入
+import LoadingOverlay from "./common/LoadingOverlay.vue";
 
-const { showToast } = useToast()
-const currentDate = ref(new Date())
-const viewMode = ref('month')
-const showModal = ref(false)
-const loading = ref(false)
-const error = ref(null)
+const { showToast } = useToast();
+const currentDate = ref(new Date());
+const viewMode = ref("month");
+const showModal = ref(false);
+const loading = ref(false);
+const error = ref(null);
 const eventForm = ref({
   id: null,
-  title: '',
-  description: '',
-  startTime: '',
-  endTime: '',
-  color: '#7c8db5'
-})
-const { previousPeriod, nextPeriod, goToToday, handleWheel } = useCalendarNavigation(currentDate, viewMode)
+  title: "",
+  description: "",
+  startTime: "",
+  endTime: "",
+  color: "#7c8db5",
+});
+const { previousPeriod, nextPeriod, goToToday, handleWheel } =
+  useCalendarNavigation(currentDate, viewMode);
 // 🔥 新增：處理子組件請求切換視圖 (給 Task 3 用)
 const changeViewMode = (mode, date) => {
-  if (date) currentDate.value = new Date(date)
-  viewMode.value = mode
-}
+  if (date) currentDate.value = new Date(date);
+  viewMode.value = mode;
+};
 
 // 🔥 關鍵改動：使用 await 來初始化資料
-const events = ref([])
+const events = ref([]);
 try {
-  const response = await eventApi.getAllEvents()
-  events.value = Array.isArray(response.data) ? response.data : []
+  const response = await eventApi.getAllEvents();
+  events.value = Array.isArray(response.data) ? response.data : [];
 } catch (err) {
-  error.value = handleApiError(err, '載入事件失敗')
-  events.value = []
+  error.value = handleApiError(err, "載入事件失敗");
+  events.value = [];
 }
 
 const currentPeriodText = computed(() => {
-  const year = currentDate.value.getFullYear()
-  const month = currentDate.value.getMonth() + 1
-  const day = currentDate.value.getDate()
-  
-  if (viewMode.value === 'year') {
-    return year + '年'
-  } else if (viewMode.value === 'month') {
-    return year + '年 ' + month + '月'
+  const year = currentDate.value.getFullYear();
+  const month = currentDate.value.getMonth() + 1;
+  const day = currentDate.value.getDate();
+
+  if (viewMode.value === "year") {
+    return year + "年";
+  } else if (viewMode.value === "month") {
+    return year + "年 " + month + "月";
   } else {
-    return year + '年 ' + month + '月 ' + day + '日'
+    return year + "年 " + month + "月 " + day + "日";
   }
-})
+});
 
 const modalTitle = computed(() => {
-  return eventForm.value.id ? '編輯事件' : '新增事件'
-})
+  return eventForm.value.id ? "編輯事件" : "新增事件";
+});
 
 // 後續的重新載入函數（用於 CRUD 操作後）
 const loadEvents = async () => {
   try {
-    loading.value = true
-    error.value = null
-    const response = await eventApi.getAllEvents()
-    
+    loading.value = true;
+    error.value = null;
+    const response = await eventApi.getAllEvents();
+
     if (Array.isArray(response.data)) {
-      events.value = response.data
+      events.value = response.data;
     } else {
-      events.value = []
-      error.value = 'API 返回格式錯誤'
+      events.value = [];
+      error.value = "API 返回格式錯誤";
     }
   } catch (err) {
-    error.value = handleApiError(err, '載入事件失敗')
-    events.value = []
+    error.value = handleApiError(err, "載入事件失敗");
+    events.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // const previousPeriod = () => {
 //   if (viewMode.value === 'year') {
@@ -193,103 +193,133 @@ const loadEvents = async () => {
 // }
 
 const goToDate = (date) => {
-  currentDate.value = new Date(date)
-  viewMode.value = 'day'
-}
+  currentDate.value = new Date(date);
+  viewMode.value = "day";
+};
 
 const openEventModal = (date) => {
-  showModal.value = true
+  showModal.value = true;
   eventForm.value = {
     id: null,
-    title: '',
-    description: '',
-    startTime: '',
-    endTime: '',
-    color: '#7c8db5',
-    estimatedCost: null // 🔥 補上這行：讓表單知道有這個欄位
-  }
-  
+    title: "",
+    description: "",
+    startTime: "",
+    endTime: "",
+    color: "#7c8db5",
+    estimatedCost: null, // 🔥 補上這行：讓表單知道有這個欄位
+  };
+
   if (date) {
-    const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0)
-    const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 10, 0)
-    eventForm.value.startTime = formatDateTimeLocal(startDate)
-    eventForm.value.endTime = formatDateTimeLocal(endDate)
+    const startDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      9,
+      0
+    );
+    const endDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      10,
+      0
+    );
+    eventForm.value.startTime = formatDateTimeLocal(startDate);
+    eventForm.value.endTime = formatDateTimeLocal(endDate);
   }
-}
+};
 
 const openEventModalAtTime = (hour) => {
-  const date = currentDate.value
-  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0)
-  const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour + 1, 0)
-  
-  showModal.value = true
+  const date = currentDate.value;
+  const startDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    hour,
+    0
+  );
+  const endDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    hour + 1,
+    0
+  );
+
+  showModal.value = true;
   eventForm.value = {
     id: null,
-    title: '',
-    description: '',
+    title: "",
+    description: "",
     startTime: formatDateTimeLocal(startDate),
     endTime: formatDateTimeLocal(endDate),
-    color: '#7c8db5',
-    estimatedCost: null // 🔥 補上這行：讓表單知道有這個欄位
-  }
-}
+    color: "#7c8db5",
+    estimatedCost: null, // 🔥 補上這行：讓表單知道有這個欄位
+  };
+};
 
 const editEvent = (event) => {
-  showModal.value = true
+  showModal.value = true;
   eventForm.value = {
     id: event.id,
     title: event.title,
-    description: event.description || '',
+    description: event.description || "",
     startTime: formatDateTimeLocal(new Date(event.startTime)),
     endTime: formatDateTimeLocal(new Date(event.endTime)),
-    color: event.color || '#7c8db5',
-    estimatedCost: event.estimatedCost || null 
-  }
-}
+    color: event.color || "#7c8db5",
+    estimatedCost: event.estimatedCost || null,
+  };
+};
 
 const closeEventModal = () => {
-  showModal.value = false
-}
+  showModal.value = false;
+};
 
 const saveEvent = async (eventData) => {
   try {
-    loading.value = true
-    
+    loading.value = true;
+
     const eventToSave = {
       ...eventData,
       startTime: formatToIsoString(eventData.startTime),
-      endTime: formatToIsoString(eventData.endTime)
-    }
-    
+      endTime: formatToIsoString(eventData.endTime),
+    };
+
     if (eventData.id) {
-      await eventApi.updateEvent(eventData.id, eventToSave)
+      await eventApi.updateEvent(eventData.id, eventToSave);
     } else {
-      await eventApi.createEvent(eventToSave)
+      await eventApi.createEvent(eventToSave);
     }
-    
-    await loadEvents()
-    closeEventModal()
-    showToast('儲存成功', 'success')
+
+    await loadEvents();
+    closeEventModal();
+    showToast("儲存成功", "success");
   } catch (err) {
-    showToast('操作失敗：' + (err.response?.data?.message || err.message), 'error')
+    showToast(
+      "操作失敗：" + (err.response?.data?.message || err.message),
+      "error"
+    );
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const deleteEvent = async (eventId) => {
   try {
-    loading.value = true
-    await eventApi.deleteEvent(eventId)
-    await loadEvents()
-    closeEventModal()
-    showToast('刪除成功', 'success')
+    loading.value = true;
+    await eventApi.deleteEvent(eventId);
+    await loadEvents();
+    closeEventModal();
+    showToast("刪除成功", "success");
   } catch (err) {
-    showToast('刪除失敗：' + (err.response?.data?.message || err.message), 'error')
+    showToast(
+      "刪除失敗：" + (err.response?.data?.message || err.message),
+      "error"
+    );
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
 
 <style scoped>
@@ -319,16 +349,17 @@ const deleteEvent = async (eventId) => {
   gap: 15px;
 }
 
-
 /* 左側 */
-.left-group { justify-self: start; }
+.left-group {
+  justify-self: start;
+}
 
 /* 中間 */
-.center-group { 
-  display: flex; 
-  align-items: center; 
-  gap: 20px; 
-  justify-self: center; 
+.center-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-self: center;
 }
 
 .btn-group button {
@@ -387,8 +418,17 @@ const deleteEvent = async (eventId) => {
 }
 
 .btn-today {
-  background: white; border: 1px solid #e0e0e0; padding: 6px 16px;
-  border-radius: 4px; cursor: pointer; color: #666; font-size: 13px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  font-size: 13px;
+
+  /* 🔥 新增以下兩行：強制不換行，且不允許被壓縮 */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* 新增按鈕 */
@@ -401,22 +441,29 @@ const deleteEvent = async (eventId) => {
   border-radius: 2px;
   letter-spacing: 0.05em;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(85, 124, 85, 0.25); 
+  box-shadow: 0 2px 5px rgba(85, 124, 85, 0.25);
   transition: all 0.2s;
   font-weight: 400;
 }
 
 .btn-primary:hover {
   /* 👇 修改：Hover 變得更深一點 */
-  background: #446344; 
+  background: #446344;
   opacity: 1; /* 原本是 opacity 0.9，改顏色比較質感 */
 }
 
 .nav-arrow {
-  background: transparent; border: none; font-size: 14px; 
-  color: #999; cursor: pointer; padding: 5px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  padding: 5px;
 }
-.nav-arrow:hover { color: #557c55; transform: scale(1.1); }
+.nav-arrow:hover {
+  color: #557c55;
+  transform: scale(1.1);
+}
 
 .spinner {
   width: 40px;
@@ -428,8 +475,12 @@ const deleteEvent = async (eventId) => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error {
@@ -447,18 +498,18 @@ const deleteEvent = async (eventId) => {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .controls > :first-child,
   .date-title {
     display: flex;
     justify-content: center;
   }
-  
+
   .right-group {
     justify-content: space-between;
     width: 100%;
   }
-  
+
   .date-title {
     font-size: 16px;
     order: -1;

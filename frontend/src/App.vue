@@ -26,4 +26,14 @@ body {
 #app {
   min-height: 100vh;
 }
+
+/* 確保根元素佔滿畫面，背景色延伸 */
+html, body, #app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  /* 🔥 統一背景色，避免縮小時出現白邊 */
+  background-color: #f3f4f6; 
+}
 </style>
