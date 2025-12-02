@@ -5,7 +5,7 @@
     <div class="controls">
       <!-- 左側: 導航按鈕 -->
       <div class="left-group">
-        <button class="btn-today" @click="goToToday">今天</button>
+        <button class="btn-today" @click="goToToday">{{ $t('calendar.view.today') }}</button>
       </div>
 
       <!-- 3. 中間：左右箭頭包夾標題 -->
@@ -18,26 +18,11 @@
       <!-- 右側: 視圖切換 + 新增按鈕 -->
       <div class="right-group">
         <div class="btn-group">
-          <button
-            @click="viewMode = 'year'"
-            :class="{ active: viewMode === 'year' }"
-          >
-            年
-          </button>
-          <button
-            @click="viewMode = 'month'"
-            :class="{ active: viewMode === 'month' }"
-          >
-            月
-          </button>
-          <button
-            @click="viewMode = 'day'"
-            :class="{ active: viewMode === 'day' }"
-          >
-            日
-          </button>
+          <button @click="viewMode = 'year'" :class="{ active: viewMode === 'year' }">{{ $t('calendar.view.year') }}</button>
+          <button @click="viewMode = 'month'" :class="{ active: viewMode === 'month' }">{{ $t('calendar.view.month') }}</button>
+          <button @click="viewMode = 'day'" :class="{ active: viewMode === 'day' }">{{ $t('calendar.view.day') }}</button>
         </div>
-        <button class="btn-primary" @click="openEventModal()">+ 新增</button>
+        <button class="btn-primary" @click="openEventModal()">+ {{ $t('calendar.nav.add') }}</button>
       </div>
     </div>
 
@@ -76,7 +61,6 @@
     <EventModal
       v-if="showModal"
       :event-form="eventForm"
-      :modal-title="modalTitle"
       @close="closeEventModal"
       @save="saveEvent"
       @delete="deleteEvent"
@@ -86,7 +70,8 @@
 
 <script setup>
 import { formatDateTimeLocal, formatToIsoString } from "../utils/dateFormatter";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
+import { useI18n } from 'vue-i18n'; // 🔥 引入
 import YearView from "./YearView.vue";
 import MonthView from "./MonthView.vue";
 import DayView from "./DayView.vue";
@@ -97,9 +82,14 @@ import { useToast } from "../composables/useToast";
 import { useCalendarNavigation } from "../composables/useCalendarNavigation"; // 🔥 引入
 import LoadingOverlay from "./common/LoadingOverlay.vue";
 
+const { t, locale } = useI18n() // 🔥 補上 locale
 const { showToast } = useToast();
 const currentDate = ref(new Date());
-const viewMode = ref("month");
+
+// 1. 初始化時，嘗試從 localStorage 讀取
+const savedViewMode = localStorage.getItem('calendarViewMode')
+const viewMode = ref(savedViewMode || 'month')
+
 const showModal = ref(false);
 const loading = ref(false);
 const error = ref(null);
@@ -110,41 +100,51 @@ const eventForm = ref({
   startTime: "",
   endTime: "",
   color: "#7c8db5",
+  estimatedCost: null
 });
+
 const { previousPeriod, nextPeriod, goToToday, handleWheel } =
   useCalendarNavigation(currentDate, viewMode);
+
 // 🔥 新增：處理子組件請求切換視圖 (給 Task 3 用)
 const changeViewMode = (mode, date) => {
   if (date) currentDate.value = new Date(date);
   viewMode.value = mode;
 };
 
+// 🔥 監聽 viewMode 變化，存入 localStorage
+watch(viewMode, (newMode) => {
+  localStorage.setItem('calendarViewMode', newMode)
+})
+
 // 🔥 關鍵改動：使用 await 來初始化資料
 const events = ref([]);
-try {
-  const response = await eventApi.getAllEvents();
-  events.value = Array.isArray(response.data) ? response.data : [];
-} catch (err) {
-  error.value = handleApiError(err, "載入事件失敗");
-  events.value = [];
-}
-
-const currentPeriodText = computed(() => {
-  const year = currentDate.value.getFullYear();
-  const month = currentDate.value.getMonth() + 1;
-  const day = currentDate.value.getDate();
-
-  if (viewMode.value === "year") {
-    return year + "年";
-  } else if (viewMode.value === "month") {
-    return year + "年 " + month + "月";
-  } else {
-    return year + "年 " + month + "月 " + day + "日";
+// 由於 setup 中不能直接用 top-level await (除非配置 suspense)，這裡改回傳統 async 函數呼叫
+const initEvents = async () => {
+  try {
+    const response = await eventApi.getAllEvents();
+    events.value = Array.isArray(response.data) ? response.data : [];
+  } catch (err) {
+    // error.value = handleApiError(err, t('errors.loadEventsFailed'));
+    // 初始化失敗暫時不阻擋渲染，僅 log
+    console.error(err)
+    events.value = [];
   }
-});
+}
+initEvents()
 
-const modalTitle = computed(() => {
-  return eventForm.value.id ? "編輯事件" : "新增事件";
+// 🔥 修改：根據當前語言格式化標題
+const currentPeriodText = computed(() => {
+  const date = currentDate.value
+  
+  if (viewMode.value === 'year') {
+    return date.getFullYear() + (locale.value === 'en-US' ? '' : t('calendar.view.year'))
+  } else if (viewMode.value === 'month') {
+    return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'long' }).format(date)
+  } else {
+    // 日視圖：顯示完整日期
+    return new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'long', day: 'numeric' }).format(date)
+  }
 });
 
 // 後續的重新載入函數（用於 CRUD 操作後）
@@ -158,39 +158,15 @@ const loadEvents = async () => {
       events.value = response.data;
     } else {
       events.value = [];
-      error.value = "API 返回格式錯誤";
+      error.value = t('errors.apiFormat');
     }
   } catch (err) {
-    error.value = handleApiError(err, "載入事件失敗");
+    error.value = handleApiError(err, t('errors.loadEventsFailed'));
     events.value = [];
   } finally {
     loading.value = false;
   }
 };
-
-// const previousPeriod = () => {
-//   if (viewMode.value === 'year') {
-//     currentDate.value = new Date(currentDate.value.getFullYear() - 1, 0, 1)
-//   } else if (viewMode.value === 'month') {
-//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1, 1)
-//   } else {
-//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), currentDate.value.getDate() - 1)
-//   }
-// }
-
-// const nextPeriod = () => {
-//   if (viewMode.value === 'year') {
-//     currentDate.value = new Date(currentDate.value.getFullYear() + 1, 0, 1)
-//   } else if (viewMode.value === 'month') {
-//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 1)
-//   } else {
-//     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), currentDate.value.getDate() + 1)
-//   }
-// }
-
-// const goToToday = () => {
-//   currentDate.value = new Date()
-// }
 
 const goToDate = (date) => {
   currentDate.value = new Date(date);
@@ -206,7 +182,7 @@ const openEventModal = (date) => {
     startTime: "",
     endTime: "",
     color: "#7c8db5",
-    estimatedCost: null, // 🔥 補上這行：讓表單知道有這個欄位
+    estimatedCost: null, 
   };
 
   if (date) {
@@ -254,7 +230,7 @@ const openEventModalAtTime = (hour) => {
     startTime: formatDateTimeLocal(startDate),
     endTime: formatDateTimeLocal(endDate),
     color: "#7c8db5",
-    estimatedCost: null, // 🔥 補上這行：讓表單知道有這個欄位
+    estimatedCost: null, 
   };
 };
 
@@ -293,12 +269,10 @@ const saveEvent = async (eventData) => {
 
     await loadEvents();
     closeEventModal();
-    showToast("儲存成功", "success");
+    showToast(t('messages.saveSuccess'), "success");
   } catch (err) {
-    showToast(
-      "操作失敗：" + (err.response?.data?.message || err.message),
-      "error"
-    );
+    const msg = err.response?.data?.message || err.message
+    showToast(t('errors.operationFailed') + msg, 'error');
   } finally {
     loading.value = false;
   }
@@ -310,12 +284,10 @@ const deleteEvent = async (eventId) => {
     await eventApi.deleteEvent(eventId);
     await loadEvents();
     closeEventModal();
-    showToast("刪除成功", "success");
+    showToast(t('messages.deleteSuccess'), "success");
   } catch (err) {
-    showToast(
-      "刪除失敗：" + (err.response?.data?.message || err.message),
-      "error"
-    );
+    const msg = err.response?.data?.message || err.message
+    showToast(t('errors.deleteFailed') + msg, "error");
   } finally {
     loading.value = false;
   }
@@ -335,17 +307,17 @@ const deleteEvent = async (eventId) => {
   position: relative;
 }
 
-/* 控制列 - 極簡線框風格 */
+/* 最外層控制列 Grid */
 .controls {
   display: grid;
-  grid-template-columns: 1fr auto 1fr; /* 左 中 右 */
+  /* 🔥 修改 1：中間改用 max-content，強迫格子寬度只包住內容，不准拉伸 */
+  grid-template-columns: 1fr max-content 1fr; 
   justify-content: space-between;
   align-items: center;
   padding: 15px 40px;
   background: white;
   border-bottom: 1px solid #f5f5f5;
   flex-shrink: 0;
-  flex-wrap: wrap;
   gap: 15px;
 }
 
@@ -354,12 +326,38 @@ const deleteEvent = async (eventId) => {
   justify-self: start;
 }
 
-/* 中間 */
-.center-group {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  justify-self: center;
+/* 中間區塊：包含 左箭頭 + 日期 + 右箭頭 */
+.center-group { 
+  /* 🔥 修改 2：改用 inline-flex，這會讓盒子像文字一樣緊湊 */
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  
+  /* 🔥 修改 3：設定固定間距，不管螢幕多大，它們距離永遠是 10px */
+  gap: 10px; 
+  
+  /* 確保寬度自動 */
+  width: auto;
+  min-width: 0;
+}
+
+/* 日期文字 */
+.date-title {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #222;
+  
+  /* 🔥 修改 4：【核彈級設定】 flex: none */
+  /* 這告訴瀏覽器：「這個文字不准放大、不准縮小、寬度自動」 */
+  /* 這樣它就絕對不會去推擠旁邊的箭頭 */
+  flex: none; 
+  
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .btn-group button {
@@ -400,14 +398,6 @@ const deleteEvent = async (eventId) => {
   color: white;
   border-color: #333;
   font-weight: 500;
-}
-
-/* 日期標題 */
-.date-title {
-  font-size: 20px;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  color: #222;
 }
 
 /* 右側組合 */
@@ -452,35 +442,30 @@ const deleteEvent = async (eventId) => {
   opacity: 1; /* 原本是 opacity 0.9，改顏色比較質感 */
 }
 
+/* 左右箭頭 */
 .nav-arrow {
-  background: transparent;
-  border: none;
-  font-size: 14px;
-  color: #999;
-  cursor: pointer;
-  padding: 5px;
-}
-.nav-arrow:hover {
-  color: #557c55;
-  transform: scale(1.1);
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #557c55;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  background: transparent; 
+  border: none; 
+  font-size: 14px; 
+  color: #999; 
+  cursor: pointer; 
+  
+  /* 🔥 修正 5：減少內距，讓它靠得更近 */
+  padding: 4px;
+  margin: 0; /* 清除所有外距 */
+  
+  /* 確保按鈕不會變形 */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.nav-arrow:hover { 
+  color: #557c55; 
+  transform: scale(1.1); 
 }
 
 .error {
@@ -497,12 +482,8 @@ const deleteEvent = async (eventId) => {
     gap: 8px;
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .controls > :first-child,
-  .date-title {
+    /* 手機版改回 Flex，方便換行 */
     display: flex;
-    justify-content: center;
   }
 
   .right-group {
@@ -512,7 +493,15 @@ const deleteEvent = async (eventId) => {
 
   .date-title {
     font-size: 16px;
-    order: -1;
+  }
+
+  /* 手機版讓中間區塊置中 */
+  .center-group {
+    order: -1; /* 讓日期跑到最上面 */
+    width: 100%; 
+    justify-content: center;
+    margin-bottom: 5px;
+    gap: 15px; /* 手機版可以稍微寬一點 */
   }
 }
 </style>

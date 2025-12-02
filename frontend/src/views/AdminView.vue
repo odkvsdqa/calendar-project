@@ -10,13 +10,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Header from '../components/layout/Header.vue'
 import AdminDashboard from '../components/admin/AdminDashboard.vue'
 import { useAuth } from '../composables/useAuth'
 
 const { currentUser, logout: handleLogout } = useAuth()
+const router = useRouter()
 
 onMounted(() => {
   if (!currentUser.value || currentUser.value.role !== 'ADMIN') {
@@ -26,14 +27,10 @@ onMounted(() => {
 })
 </script>
 
-/* src/views/AdminView.vue */
 <style scoped>
+/* 您原本的樣式：清爽的淺灰背景 */
 .admin-view {
   min-height: 100vh;
-  /* ❌ 移除舊的深色漸層 */
-  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-  
-  /* ✅ 改為：清爽的淺灰背景，讓白色卡片更凸顯 */
   background: #f3f4f6; 
   padding-bottom: 40px;
 }

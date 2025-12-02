@@ -1,0 +1,152 @@
+{
+"common": {
+    "confirm": "確定",
+    "cancel": "取消",
+    "save": "儲存",
+    "delete": "刪除",
+    "loading": "載入中...",
+    "close": "關閉",
+    "query": "查詢",
+    "year": "年份",
+    "month": "月份",
+    "person": "人",
+    "unit": "單位"
+  },
+  "errors": {
+    "default": "操作失敗",
+    "sessionExpired": "登入已過期，請重新登入",
+    "forbidden": "沒有權限執行此操作",
+    "notFound": "找不到資源",
+    "serverError": "伺服器錯誤，請稍後再試",
+    "apiFormat": "API 返回格式錯誤",
+    "loadEventsFailed": "載入事件失敗",
+    "operationFailed": "操作失敗：",
+    "deleteFailed": "刪除失敗："
+  },
+  "messages": {
+    "saveSuccess": "儲存成功",
+    "deleteSuccess": "刪除成功",
+    "registerSuccess": "註冊成功！3秒後跳轉到登入頁面..."
+  },
+  "header": {
+    "calendar": "日曆",
+    "admin": "後台",
+    "settings": "設定",
+    "navigation": "導航",
+    "language": "語言"
+  },
+  "auth": {
+    "login": "登入",
+    "register": "註冊",
+    "logout": "登出",
+    "username": "用戶名",
+    "password": "密碼",
+    "confirmPassword": "確認密碼",
+    "email": "電子郵件",
+    "noAccount": "還沒有帳號？",
+    "hasAccount": "已有帳號？",
+    "registerNow": "立即註冊",
+    "loginNow": "立即登入",
+    "logoutConfirmTitle": "準備要離開了嗎？",
+    "logoutConfirmText": "確定要登出目前的帳號嗎？",
+    "confirmLogout": "確定登出",
+    "sloganTitle": "SKJL 預定",
+    "sloganDesc": "簡約、流暢、高效的行程管理\n讓您的時間更有價值",
+    "errors": {
+        "passwordMismatch": "兩次輸入的密碼不一致",
+        "registerFailed": "註冊失敗，請稍後再試",
+        "loginFailed": "登入失敗，請檢查用戶名和密碼",
+        "noPermission": "您沒有權限訪問此頁面"
+    }
+  },
+  "calendar": {
+    "view": {
+      "year": "年",
+      "month": "月",
+      "day": "日",
+      "today": "今天"
+    },
+    "nav": {
+      "add": "新增"
+    },
+    "moreEvents": "其他的 {count} 項預定",
+    "weekdays": {
+      "sun": "日",
+      "mon": "一",
+      "tue": "二",
+      "wed": "三",
+      "thu": "四",
+      "fri": "五",
+      "sat": "六"
+    }
+  },
+  "event": {
+    "addTitle": "新增事件",
+    "editTitle": "編輯事件",
+    "title": "標題",
+    "cost": "預計花費",
+    "description": "描述",
+    "start": "開始",
+    "end": "結束",
+    "color": "標籤顏色",
+    "placeholder": {
+      "title": "請輸入標題...",
+      "cost": "0",
+      "desc": "備註..."
+    },
+    "deleteConfirmTitle": "確認刪除",
+    "deleteConfirmText": "確定要刪除此事件嗎？"
+  },
+  "admin": {
+    "dashboard": "管理員儀表板",
+    "tabs": {
+      "dateQuery": "按日期查詢",
+      "monthlyStats": "按月份統計",
+      "timeRange": "按時間範圍",
+      "userSchedule": "用戶排程"
+    },
+    "stats": { 
+       "activeUsers": "活躍用戶數",
+       "totalEvents": "總事件數",
+       "totalBudget": "本月總預算",
+       "estimatedCost": "預計總花費",
+       "scheduledDays": "有排程的天數",
+       "scheduledUsers": "有排程的用戶數"
+    },
+    "components": {
+      "dateQuery": {
+        "title": "查詢特定日期的用戶排程",
+        "label": "選擇日期:",
+        "empty": "請選擇日期並點擊查詢",
+        "userList": "用戶列表:",
+        "resultTitle": "查詢結果"
+      },
+      "monthlyStats": {
+        "title": "月份統計數據",
+        "empty": "請選擇月份查看統計報表",
+        "resultTitle": "統計",
+        "dailyStats": "每日用戶統計:"
+      },
+      "timeRange": {
+        "title": "時間範圍統計",
+        "start": "開始:",
+        "end": "結束:",
+        "empty": "請設定時間範圍進行分析",
+        "hourlyChart": "每小時用戶統計圖表:"
+      },
+      "userSchedule": {
+        "title": "查詢用戶排程日期",
+        "label": "選擇用戶:",
+        "placeholder": "-- 請選擇用戶 --",
+        "empty": "請選擇一位用戶以查看排程",
+        "scheduleOf": "的排程日期",
+        "dateList": "排程日期列表:"
+      }
+    },
+    "errors": {
+        "selectDate": "請選擇日期",
+        "queryFailed": "查詢失敗，請稍後再試",
+        "selectTimeRange": "請選擇開始和結束時間"
+    }
+  }
+}

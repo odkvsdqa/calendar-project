@@ -1,0 +1,152 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "close": "Close",
+    "query": "Query",
+    "year": "Year",
+    "month": "Month",
+    "person": "users",
+    "unit": "Unit"
+  },
+  "header": {
+    "calendar": "Calendar",
+    "admin": "Admin",
+    "settings": "Settings",
+    "navigation": "Navigation",
+    "language": "Language"
+  },
+  "errors": {
+    "default": "Operation failed",
+    "sessionExpired": "Session expired, please login again",
+    "forbidden": "Permission denied",
+    "notFound": "Resource not found",
+    "serverError": "Server error, please try again later",
+    "apiFormat": "Invalid API response format",
+    "loadEventsFailed": "Failed to load events",
+    "operationFailed": "Operation failed: ",
+    "deleteFailed": "Delete failed: "
+  },
+  "messages": {
+    "saveSuccess": "Saved successfully",
+    "deleteSuccess": "Deleted successfully",
+    "registerSuccess": "Registration successful! Redirecting to login..."
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "email": "Email",
+    "noAccount": "No account yet?",
+    "hasAccount": "Already have an account?",
+    "registerNow": "Register Now",
+    "loginNow": "Login Now",
+    "logoutConfirmTitle": "Leaving so soon?",
+    "logoutConfirmText": "Are you sure you want to logout?",
+    "confirmLogout": "Logout",
+    "sloganTitle": "SKJL Booking",
+    "sloganDesc": "Simple, fluid, efficient schedule management\nMake your time more valuable",
+    "errors": {
+      "passwordMismatch": "Passwords do not match",
+      "registerFailed": "Registration failed, please try again",
+      "loginFailed": "Login failed, check username and password",
+      "noPermission": "You do not have permission to access this page"
+    }
+  },
+  "calendar": {
+    "view": {
+      "year": "Year",
+      "month": "Month",
+      "day": "Day",
+      "today": "Today"
+    },
+    "nav": {
+      "add": "Add"
+    },
+    "moreEvents": "{count} more",
+    "weekdays": {
+      "sun": "SUN",
+      "mon": "MON",
+      "tue": "TUE",
+      "wed": "WED",
+      "thu": "THU",
+      "fri": "FRI",
+      "sat": "SAT"
+    }
+  },
+  "event": {
+    "addTitle": "New Event",
+    "editTitle": "Edit Event",
+    "title": "Title",
+    "cost": "Cost",
+    "description": "Description",
+    "start": "Start",
+    "end": "End",
+    "color": "Color",
+    "placeholder": {
+      "title": "Enter title...",
+      "cost": "0",
+      "desc": "Notes..."
+    },
+    "deleteConfirmTitle": "Delete Event",
+    "deleteConfirmText": "Are you sure you want to delete this event?"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "tabs": {
+      "dateQuery": "By Date",
+      "monthlyStats": "Monthly Stats",
+      "timeRange": "Time Range",
+      "userSchedule": "User Schedule"
+    },
+    "stats": {
+      "activeUsers": "Active Users",
+      "totalEvents": "Total Events",
+      "totalBudget": "Total Budget",
+      "estimatedCost": "Est. Total Cost",
+      "scheduledDays": "Scheduled Days",
+      "scheduledUsers": "Scheduled Users"
+    },
+    "components": {
+      "dateQuery": {
+        "title": "User Schedule by Date",
+        "label": "Select Date:",
+        "empty": "Please select a date to query",
+        "userList": "User List:",
+        "resultTitle": "Query Result"
+      },
+      "monthlyStats": {
+        "title": "Monthly Statistics",
+        "empty": "Select a month to view stats",
+        "resultTitle": "Stats",
+        "dailyStats": "Daily User Stats:"
+      },
+      "timeRange": {
+        "title": "Time Range Analysis",
+        "start": "Start:",
+        "end": "End:",
+        "empty": "Set time range to analyze",
+        "hourlyChart": "Hourly User Activity:"
+      },
+      "userSchedule": {
+        "title": "User Schedule Dates",
+        "label": "Select User:",
+        "placeholder": "-- Select User --",
+        "empty": "Select a user to view schedule",
+        "scheduleOf": "'s Schedule",
+        "dateList": "Scheduled Dates:"
+      }
+    },
+    "errors": {
+      "selectDate": "Please select a date",
+      "queryFailed": "Query failed, please try again later",
+      "selectTimeRange": "Please select start and end time"
+    }
+  }
+}

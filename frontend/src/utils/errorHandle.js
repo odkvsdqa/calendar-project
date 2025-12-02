@@ -1,14 +1,20 @@
-// ✅ 統一錯誤處理
-// utils/errorHandler.js
+// src/utils/errorHandle.js
+import i18n from '../i18n' // 引入我們建立的 i18n 實體
+
+// 取得全域翻譯函式
+const { t } = i18n.global
+
 export function handleApiError(error, customMessage) {
   if (error.response?.status === 401) {
-    return '登入已過期，請重新登入'
+    return t('errors.sessionExpired')
   } else if (error.response?.status === 403) {
-    return '沒有權限執行此操作'
+    return t('errors.forbidden')
   } else if (error.response?.status === 404) {
-    return '找不到資源'
+    return t('errors.notFound')
   } else if (error.response?.status >= 500) {
-    return '伺服器錯誤，請稍後再試'
+    return t('errors.serverError')
   }
-  return customMessage || error.response?.data?.message || '操作失敗'
+  
+  // 如果有後端回傳的 message 就用後端的，否則用預設錯誤，或自訂訊息
+  return error.response?.data?.message || customMessage || t('errors.default')
 }

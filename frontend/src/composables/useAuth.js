@@ -1,22 +1,30 @@
-import { ref, computed } from 'vue'
+// src/composables/useAuth.js
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getUserInfo, clearAuth, isAuthenticated } from '../utils/auth'
+import { getUserInfo, removeToken, removeUserInfo } from '../utils/auth'
+
+const currentUser = ref(getUserInfo())
 
 export function useAuth() {
   const router = useRouter()
-  const currentUser = ref(getUserInfo())
-  
-  const isAdmin = computed(() => currentUser.value?.role === 'ADMIN')
-  
+
   const logout = () => {
-    clearAuth()
+    // 還原登出邏輯
+    removeToken()
+    removeUserInfo()
+    
+    currentUser.value = null
+    
     router.push('/login')
   }
-  
+
+  const refreshUser = () => {
+    currentUser.value = getUserInfo()
+  }
+
   return {
     currentUser,
-    isAdmin,
     logout,
-    isAuthenticated: isAuthenticated()
+    refreshUser
   }
 }

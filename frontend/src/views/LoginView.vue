@@ -2,14 +2,14 @@
   <div class="login-view">
     <div class="login-wrapper">
       
-      <!-- 左側：品牌展示 (Banner) -->
+      <!-- 左側：品牌展示 -->
       <div class="brand-section">
         <div class="brand-content">
-          <SkjlLogo layout="vertical"  mode="white"/>
-          <p class="brand-desc">
-            簡約、流暢、高效的行程管理<br>
-            讓您的時間更有價值
-          </p>
+          <SkjlLogo layout="vertical" mode="white"/>
+          
+          <!-- 🔥 修改：使用 i18n 翻譯，並保留換行效果 (pre-line) -->
+          <p class="brand-desc">{{ $t('auth.sloganDesc') }}</p>
+          
           <div class="decoration-circle circle-1"></div>
           <div class="decoration-circle circle-2"></div>
         </div>
@@ -82,6 +82,9 @@ import SkjlLogo from '../components/SkjlLogo.vue'
   letter-spacing: 1px;
   font-weight: 400;
   opacity: 0.8;
+
+  /* 🔥 新增：讓 \n 換行符號生效 */
+  white-space: pre-line; 
 }
 
 /* 裝飾用的背景圓圈 */

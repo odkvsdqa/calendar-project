@@ -1,63 +1,39 @@
-// Token 相關操作
+// src/utils/auth.js
 
-const TOKEN_KEY = 'auth_token'
-const USER_KEY = 'user_info'
+const TokenKey = 'calendar-auth-token'
+const UserKey = 'calendar-user-info'
 
-/**
- * 保存 Token
- */
-export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token)
-}
-
-/**
- * 獲取 Token
- */
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY)
+  return localStorage.getItem(TokenKey)
 }
 
-/**
- * 移除 Token
- */
+export function setToken(token) {
+  return localStorage.setItem(TokenKey, token)
+}
+
 export function removeToken() {
-  localStorage.removeItem(TOKEN_KEY)
+  return localStorage.removeItem(TokenKey)
 }
 
-/**
- * 保存用戶資訊
- */
 export function setUserInfo(user) {
-  localStorage.setItem(USER_KEY, JSON.stringify(user))
+  return localStorage.setItem(UserKey, JSON.stringify(user))
 }
 
-/**
- * 獲取用戶資訊
- */
 export function getUserInfo() {
-  const userStr = localStorage.getItem(USER_KEY)
-  return userStr ? JSON.parse(userStr) : null
+  const user = localStorage.getItem(UserKey)
+  return user ? JSON.parse(user) : null
 }
 
-/**
- * 移除用戶資訊
- */
 export function removeUserInfo() {
-  localStorage.removeItem(USER_KEY)
+  return localStorage.removeItem(UserKey)
 }
 
-/**
- * 檢查是否已登入
- */
-export function isAuthenticated() {
-  return !!getToken()
-}
-
-/**
- * 清除所有認證資訊（登出）
- */
+// 如果您原本有這個函式，請保留
 export function clearAuth() {
   removeToken()
   removeUserInfo()
 }
 
+export function isAuthenticated() {
+  return !!getToken()
+}

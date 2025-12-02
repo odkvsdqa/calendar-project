@@ -1,0 +1,152 @@
+{
+  "common": {
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "loading": "読込中...",
+    "close": "閉じる",
+    "query": "検索",
+    "year": "年",
+    "month": "月",
+    "person": "人",
+    "unit": "単位"
+  },
+  "header": {
+    "calendar": "カレンダー",
+    "admin": "管理画面",
+    "settings": "設定",
+    "navigation": "ナビゲーション",
+    "language": "言語"
+  },
+  "errors": {
+    "default": "操作に失敗しました",
+    "sessionExpired": "セッションが切れました。再ログインしてください",
+    "forbidden": "権限がありません",
+    "notFound": "リソースが見つかりません",
+    "serverError": "サーバーエラーです。後ほどお試しください",
+    "apiFormat": "APIの形式エラー",
+    "loadEventsFailed": "イベントの読み込みに失敗しました",
+    "operationFailed": "操作失敗: ",
+    "deleteFailed": "削除失敗: "
+  },
+  "messages": {
+    "saveSuccess": "保存しました",
+    "deleteSuccess": "削除しました",
+    "registerSuccess": "登録成功！3秒後にログインページへ移動します..."
+  },
+  "auth": {
+    "login": "ログイン",
+    "register": "登録",
+    "logout": "ログアウト",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "email": "メールアドレス",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "hasAccount": "すでにアカウントをお持ちですか？",
+    "registerNow": "新規登録",
+    "loginNow": "ログインへ",
+    "logoutConfirmTitle": "ログアウトしますか？",
+    "logoutConfirmText": "現在のアカウントからログアウトしてもよろしいですか？",
+    "confirmLogout": "ログアウト",
+    "sloganTitle": "SKJL 予定",
+    "sloganDesc": "シンプルでスムーズ、効率的なスケジュール管理\nあなたの時間をより価値あるものに",
+    "errors": {
+      "passwordMismatch": "パスワードが一致しません",
+      "registerFailed": "登録に失敗しました。後ほどお試しください",
+      "loginFailed": "ログイン失敗。ユーザー名とパスワードを確認してください",
+      "noPermission": "このページにアクセスする権限がありません"
+    }
+  },
+  "calendar": {
+    "view": {
+      "year": "年",
+      "month": "月",
+      "day": "日",
+      "today": "今日"
+    },
+    "nav": {
+      "add": "追加"
+    },
+    "moreEvents": "他 {count} 件",
+    "weekdays": {
+      "sun": "日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土"
+    }
+  },
+  "event": {
+    "addTitle": "予定を追加",
+    "editTitle": "予定を編集",
+    "title": "タイトル",
+    "cost": "予算",
+    "description": "メモ",
+    "start": "開始",
+    "end": "終了",
+    "color": "色",
+    "placeholder": {
+      "title": "タイトルを入力...",
+      "cost": "0",
+      "desc": "詳細を入力..."
+    },
+    "deleteConfirmTitle": "削除の確認",
+    "deleteConfirmText": "この予定を削除してもよろしいですか？"
+  },
+  "admin": {
+    "dashboard": "管理者ダッシュボード",
+    "tabs": {
+      "dateQuery": "日付検索",
+      "monthlyStats": "月間統計",
+      "timeRange": "期間統計",
+      "userSchedule": "ユーザー予定"
+    },
+    "stats": {
+      "activeUsers": "アクティブユーザー",
+      "totalEvents": "総イベント数",
+      "totalBudget": "今月の総予算",
+      "estimatedCost": "予想総費用",
+      "scheduledDays": "予定あり日数",
+      "scheduledUsers": "予定ありユーザー"
+    },
+    "components": {
+      "dateQuery": {
+        "title": "特定日のユーザー予定検索",
+        "label": "日付選択:",
+        "empty": "日付を選択して検索してください",
+        "userList": "ユーザーリスト:",
+        "resultTitle": "検索結果"
+      },
+      "monthlyStats": {
+        "title": "月間統計データ",
+        "empty": "月を選択して統計を表示",
+        "resultTitle": "統計",
+        "dailyStats": "日別ユーザー統計:"
+      },
+      "timeRange": {
+        "title": "期間統計",
+        "start": "開始:",
+        "end": "終了:",
+        "empty": "期間を設定して分析",
+        "hourlyChart": "時間別アクティビティ:"
+      },
+      "userSchedule": {
+        "title": "ユーザー予定日検索",
+        "label": "ユーザー選択:",
+        "placeholder": "-- ユーザーを選択 --",
+        "empty": "ユーザーを選択して予定を表示",
+        "scheduleOf": "のスケジュール",
+        "dateList": "予定日リスト:"
+      }
+    },
+    "errors": {
+      "selectDate": "日付を選択してください",
+      "queryFailed": "検索に失敗しました。後ほどお試しください",
+      "selectTimeRange": "開始日時と終了日時を選択してください"
+    }
+  }
+}

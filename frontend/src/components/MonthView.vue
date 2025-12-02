@@ -66,7 +66,7 @@
             class="more-events"
             @click.stop="openListModal(dayData.date)"
           >
-            其他的 {{ getEventsForDay(dayData.date).length - 4 }} 項預定
+            {{ $t('calendar.moreEvents', { count: getEventsForDay(dayData.date).length - 4 }) }}
           </div>
         </div>
       </div>
@@ -84,7 +84,7 @@
       <div class="list-modal">
         <div class="list-header">
           <h3>{{ listDateTitle }}</h3>
-          <button class="btn-close" @click="closeListModal">✕</button>
+          <button class="btn-close" @click="closeListModal"></button>
         </div>
         <div class="list-content">
           <div
@@ -113,7 +113,19 @@ import { ref, watch, toRef, computed } from "vue";
 import { useCostAnalysis } from "../composables/useCostAnalysis";
 // 如果你的 utils 路徑不同，請確認這行
 import { formatDateTimeLocal } from "../utils/dateFormatter";
+import { useI18n } from 'vue-i18n'
 
+
+const { t } = useI18n()
+const weekdays = computed(() => [
+  t('calendar.weekdays.sun'),
+  t('calendar.weekdays.mon'),
+  t('calendar.weekdays.tue'),
+  t('calendar.weekdays.wed'),
+  t('calendar.weekdays.thu'),
+  t('calendar.weekdays.fri'),
+  t('calendar.weekdays.sat')
+])
 const props = defineProps({
   currentDate: { type: Date, required: true },
   events: { type: Array, default: () => [] },
@@ -125,7 +137,6 @@ const eventsRef = toRef(props, "events");
 const { getCostLevel } = useCostAnalysis(eventsRef);
 
 // --- 以下維持你原有的日曆邏輯 ---
-const weekdays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const calendarDays = ref([]);
 const eventTracks = ref(new Map());
 
