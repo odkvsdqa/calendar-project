@@ -3,6 +3,8 @@ package com.calendar.model;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -41,6 +43,11 @@ public class Event {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+
+    // 🔥 關聯：財務實體 (Cascade 設定為 ALL，代表 Event 存檔/刪除時自動連動)
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private EventFinancial financial;
+    
     public Event() {}
     
     @PrePersist
@@ -49,6 +56,11 @@ public class Event {
         updatedAt = LocalDateTime.now();
         if (color == null || color.isEmpty()) {
             color = "#667eea";
+        }
+     // 確保 financial 物件存在，避免 NullPointerException
+        if (financial == null) {
+            financial = new EventFinancial();
+            financial.setEvent(this);
         }
     }
     
@@ -128,5 +140,25 @@ public class Event {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+ // 🔥 2. 請在你的 Setter 加上 @JsonProperty("estimatedCost")
+    // 這會強制後端把 JSON 裡的 estimatedCost 塞進來，就算沒有這個欄位
+    @JsonProperty("estimatedCost")
+    public void setEstimatedCost(BigDecimal cost) {
+        System.out.println(">>> (後端收到) 正在寫入金額: " + cost);
+        
+        if (this.financial == null) {
+            this.financial = new EventFinancial();
+            this.financial.setEvent(this);
+        }
+        this.financial.setEstimatedCost(cost);
+    }
+
+    // 🔥 3. Getter 也建議加上，確保回傳給前端時有這個欄位
+    @Transient
+    @JsonProperty("estimatedCost")
+    public BigDecimal getEstimatedCost() {
+        return financial != null ? financial.getEstimatedCost() : BigDecimal.ZERO;
     }
 }

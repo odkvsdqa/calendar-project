@@ -3,14 +3,6 @@ package com.calendar.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-
-import java.io.IOException;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -27,4 +19,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .maxAge(3600);
     }
 	
-}		
+}

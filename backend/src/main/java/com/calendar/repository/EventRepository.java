@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -123,4 +124,11 @@ public interface EventRepository extends JpaRepository<Event, String> {
         @Param("user") User user,
         @Param("date") LocalDateTime date
     );
+    
+ // 🔥 新增：金額統計 (Join Financial Table)
+    @Query("SELECT SUM(e.financial.estimatedCost) FROM Event e WHERE ((e.startTime BETWEEN :startDate AND :endDate) OR (e.endTime BETWEEN :startDate AND :endDate) OR (e.startTime <= :startDate AND e.endTime >= :endDate))")
+    BigDecimal sumEstimatedCostByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT SUM(e.financial.estimatedCost) FROM Event e WHERE YEAR(e.startTime) = :year AND MONTH(e.startTime) = :month")
+    BigDecimal sumEstimatedCostByYearAndMonth(@Param("year") int year, @Param("month") int month);
 }

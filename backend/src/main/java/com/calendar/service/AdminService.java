@@ -7,6 +7,7 @@ import com.calendar.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal; // 新增
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -73,6 +74,8 @@ public class AdminService {
     public Map<String, Object> getMonthlyStatistics(int year, int month) {
         List<Event> events = eventRepository.findAllByYearAndMonth(year, month);
         Long userCount = eventRepository.countDistinctUsersByYearAndMonth(year, month);
+     // 🔥 注入金額
+        BigDecimal totalCost = eventRepository.sumEstimatedCostByYearAndMonth(year, month);
         
         // 按日期分組統計
         Map<LocalDate, List<Event>> eventsByDate = events.stream()
@@ -95,6 +98,7 @@ public class AdminService {
         result.put("month", month);
         result.put("totalUsers", userCount);
         result.put("totalEvents", events.size());
+        result.put("totalCost", totalCost != null ? totalCost : BigDecimal.ZERO); // 🔥
         result.put("dailyUserCount", dailyUserCount);
         
         return result;
@@ -107,6 +111,8 @@ public class AdminService {
         List<Event> events = eventRepository.findAllByDateRange(startTime, endTime);
         Long userCount = eventRepository.countDistinctUsersByDateRange(startTime, endTime);
         List<User> users = eventRepository.findDistinctUsersByDateRange(startTime, endTime);
+        // 🔥 注入金額
+        BigDecimal totalCost = eventRepository.sumEstimatedCostByDateRange(startTime, endTime);
         
         // 按小時分組統計
         Map<Integer, Set<String>> usersByHour = new HashMap<>();
@@ -135,6 +141,7 @@ public class AdminService {
         result.put("endTime", endTime);
         result.put("totalUsers", userCount);
         result.put("totalEvents", events.size());
+        result.put("totalCost", totalCost != null ? totalCost : BigDecimal.ZERO); // 🔥
         result.put("hourlyUserCount", hourlyUserCount);
         result.put("users", users.stream()
                 .map(user -> {

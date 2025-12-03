@@ -88,6 +88,9 @@ public class EventService {
                 event.setStartTime(eventDetails.getStartTime());
                 event.setEndTime(eventDetails.getEndTime());
                 event.setColor(eventDetails.getColor());
+             // 🔥🔥🔥 關鍵修正：必須手動把「預計花費」從傳入的物件搬移到舊物件上
+                // 因為我們有用 @Transient 和 魔法 Setter，這一行會自動更新 Financial 表
+                event.setEstimatedCost(eventDetails.getEstimatedCost());
                 return eventRepository.save(event);
             })
             .orElseThrow(() -> new RuntimeException("找不到事件或無權限操作"));

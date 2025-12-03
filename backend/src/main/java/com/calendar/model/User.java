@@ -33,6 +33,10 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    // 🔥 可選：建立雙向關聯
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserPreference preference;
+    
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Event> events;

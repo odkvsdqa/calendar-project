@@ -17,13 +17,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
-    
+
     /**
      * 認證管理器
      */
@@ -33,7 +33,7 @@ public class SecurityConfig {
     ) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-    
+
     /**
      * 認證提供者
      */
@@ -44,7 +44,7 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
-    
+
     /**
      * Security 過濾鏈配置(含角色權限)
      */
@@ -62,6 +62,9 @@ public class SecurityConfig {
                 
                 // 管理員專用 API - 需要 ADMIN 角色
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                
+                // 🔥 新增：使用者偏好 API - 所有已認證用戶都可訪問
+                .requestMatchers("/api/preferences/**").authenticated()
                 
                 // 事件 API - 所有已認證用戶都可訪問
                 .requestMatchers("/api/events/**").authenticated()
