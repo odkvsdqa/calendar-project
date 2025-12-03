@@ -44,9 +44,10 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n"; 
 import { login } from "../../services/authService";
 import { setToken, setUserInfo } from "../../utils/auth";
+import { preferenceApi } from "../../services/preferenceApi"; // 🔥 新增
 
 const router = useRouter();
-const { t } = useI18n();
+const { t, locale } = useI18n(); // 🔥 補上 locale
 
 const form = ref({ username: "", password: "" });
 const loading = ref(false);
@@ -63,7 +64,22 @@ const handleSubmit = async () => {
     setToken(token)
     setUserInfo(user)
     
-    // 🔥 移除 API 呼叫，直接跳轉
+    // 🔥 新增：登入成功後，從後端同步語言偏好
+    try {
+      const langResponse = await preferenceApi.getLanguage()
+      const serverLanguage = langResponse.data.language
+      
+      // 更新前端 i18n 與 localStorage
+      locale.value = serverLanguage
+      localStorage.setItem('user-locale', serverLanguage)
+      
+      console.log('✅ 已同步後端語言設定:', serverLanguage)
+    } catch (langError) {
+      // 若語言同步失敗，不阻擋登入流程，僅 log
+      console.warn('⚠️ 語言同步失敗 (使用預設語言):', langError)
+    }
+    
+    // 跳轉至日曆頁面
     router.push('/calendar')
   } catch (error) {
     console.error('Login failed:', error)

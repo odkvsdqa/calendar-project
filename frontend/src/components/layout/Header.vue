@@ -1,7 +1,6 @@
 <template>
   <div class="header">
     <div class="header-content">   
-      
       <!-- 左側：漢堡選單 + Logo -->
       <div class="left-section">
         <button class="menu-btn" @click="isDrawerOpen = true">
@@ -127,6 +126,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SkjlLogo from '../SkjlLogo.vue'
 import BaseModal from '../../components/common/BaseModal.vue'
+import { preferenceApi } from '../../services/preferenceApi' // 🔥 新增
 
 const props = defineProps({
   username: { type: String, required: true },
@@ -146,10 +146,20 @@ const openDrawer = () => { isDrawerOpen.value = true }
 const toggleNav = () => { isNavExpanded.value = !isNavExpanded.value }
 const toggleLang = () => { isLangExpanded.value = !isLangExpanded.value }
 
-// 🔥 回歸純前端：只存 localStorage
-const changeLocale = (lang) => {
+// 🔥 修改：同步至後端 + localStorage
+const changeLocale = async (lang) => {
+  // 1. 先更新前端 (立即反應)
   locale.value = lang
   localStorage.setItem('user-locale', lang)
+  
+  // 2. 非同步同步至後端 (失敗不影響 UX)
+  try {
+    await preferenceApi.updateLanguage(lang)
+    console.log('✅ 語言已同步至後端:', lang)
+  } catch (error) {
+    console.warn('⚠️ 語言同步後端失敗 (已儲存至本地):', error)
+    // 不顯示錯誤訊息給用戶，因為前端已經切換成功
+  }
 }
 
 const openLogoutModal = () => showLogoutModal.value = true

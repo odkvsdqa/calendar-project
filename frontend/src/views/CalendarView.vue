@@ -27,6 +27,28 @@ import Header from '../components/layout/Header.vue'
 import CalendarApp from '../components/CalendarApp.vue'
 import SkeletonCalendar from '../components/SkeletonCalendar.vue'
 import { useAuth } from '../composables/useAuth'
+// 🔥 新增這 3 行 import
+import { useI18n } from 'vue-i18n'
+import { preferenceApi } from '../services/preferenceApi'
+const { locale } = useI18n()
+
+// 🔥 新增這個 onMounted hook
+onMounted(async () => {
+  try {
+    const response = await preferenceApi.getLanguage()
+    const serverLanguage = response.data.language
+    
+    const localLanguage = localStorage.getItem('user-locale')
+    
+    if (localLanguage !== serverLanguage) {
+      locale.value = serverLanguage
+      localStorage.setItem('user-locale', serverLanguage)
+      console.log('✅ 已同步後端語言設定:', serverLanguage)
+    }
+  } catch (error) {
+    console.warn('⚠️ 無法載入後端語言設定 (使用本地語言):', error)
+  }
+})
 
 const { currentUser, logout: handleLogout } = useAuth()
 </script>
