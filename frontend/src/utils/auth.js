@@ -1,7 +1,7 @@
 // src/utils/auth.js
 
-const TokenKey = 'calendar-auth-token'
-const UserKey = 'calendar-user-info'
+const TokenKey = 'auth-token'
+const UserKey = 'user-info'
 
 export function getToken() {
   return localStorage.getItem(TokenKey)

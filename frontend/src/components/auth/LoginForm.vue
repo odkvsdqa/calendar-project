@@ -63,7 +63,6 @@ const handleSubmit = async () => {
     
     setToken(token)
     setUserInfo(user)
-    
     // 🔥 新增：登入成功後，從後端同步語言偏好
     try {
       const langResponse = await preferenceApi.getLanguage()

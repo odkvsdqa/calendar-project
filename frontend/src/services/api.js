@@ -4,7 +4,7 @@ import { getToken } from '../utils/auth'
 
 // ⚠️ 使用 Cloudflare Tunnel 的後端 URL
 const api = axios.create({
-  baseURL: 'https://asus-abc-short-por.trycloudflare.com/calendar-web/api',
+  baseURL: 'https://administrative-offices-quit-made.trycloudflare.com/calendar-web/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -41,8 +41,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // 🔥 修正：使用正確的 localStorage key
       if (!window.location.pathname.includes('/login')) {
-        localStorage.removeItem('calendar-auth-token') // ✅ 修正為正確的 key
-        localStorage.removeItem('calendar-user-info')  // ✅ 修正為正確的 key
+        localStorage.removeItem('auth-token') // ✅ 修正為正確的 key
+        localStorage.removeItem('user-info')  // ✅ 修正為正確的 key
         window.location.href = '/login'
       }
     }
