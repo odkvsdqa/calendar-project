@@ -63,8 +63,12 @@ public class SecurityConfig {
                 // 管理員專用 API - 需要 ADMIN 角色
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
+             // 🔥 新增：場館爬蟲 API - 需登入才能使用 (保護伺服器流量)
+                .requestMatchers("/api/venues/**").authenticated() 
+                
                 // 🔥 新增：使用者偏好 API - 所有已認證用戶都可訪問
                 .requestMatchers("/api/preferences/**").authenticated()
+                
                 
                 // 事件 API - 所有已認證用戶都可訪問
                 .requestMatchers("/api/events/**").authenticated()

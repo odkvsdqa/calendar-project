@@ -30,6 +30,14 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         
+        
+         <!-- Jsoup 爬蟲 -->
+        <dependency>
+        <groupId>org.jsoup</groupId>
+        <artifactId>jsoup</artifactId>
+        <version>1.17.2</version>
+        </dependency>
+        
         <!-- Spring Boot Data JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
