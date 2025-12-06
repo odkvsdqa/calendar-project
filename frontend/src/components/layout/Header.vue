@@ -10,7 +10,6 @@
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
-
         <div class="logo-wrapper">
           <SkjlLogo layout="horizontal" :show-tagline="false" mode="default" />
         </div>
@@ -22,9 +21,7 @@
           <router-link to="/calendar" class="nav-link">{{ $t('header.calendar') }}</router-link>
           <router-link v-if="isAdmin" to="/admin" class="nav-link">{{ $t('header.admin') }}</router-link>
         </div>
-        
         <div class="divider"></div>
-
         <div class="user-section">
           <div class="user-info">
             <span class="username">{{ username }}</span>
@@ -49,13 +46,12 @@
         
         <div class="drawer-content">
           
-          <!-- 導航折疊選單 -->
+          <!-- 1. 導航 (僅手機版顯示) -->
           <div class="accordion-item mobile-only-nav">
             <div class="accordion-header" @click="toggleNav">
               <span class="accordion-title">📅 {{ $t('header.navigation') }}</span>
               <span class="arrow" :class="{ rotated: isNavExpanded }">▼</span>
             </div>
-            
             <div v-show="isNavExpanded" class="accordion-body">
               <div class="drawer-nav-links">
                 <router-link to="/calendar" class="drawer-link" @click="isDrawerOpen = false">
@@ -67,16 +63,47 @@
               </div>
             </div>
           </div>
-
           <div class="drawer-divider mobile-only-nav"></div>
 
-          <!-- 語言折疊選單 -->
+          <!-- 🔥 2. 場館訂閱 (折疊選單) -->
+          <div class="accordion-item">
+            <div class="accordion-header" @click="toggleVenues">
+              <!-- 使用 i18n -->
+              <span class="accordion-title">🎫 {{ $t('header.venues') }}</span>
+              <span class="arrow" :class="{ rotated: isVenuesExpanded }">▼</span>
+            </div>
+            
+            <div v-show="isVenuesExpanded" class="accordion-body">
+              <div class="lang-options">
+                <!-- 迴圈顯示後端抓回來的場館 -->
+                <div 
+                  v-for="venue in availableVenues" 
+                  :key="venue.id" 
+                  class="lang-item" 
+                  :class="{ active: subscribedVenueIds.has(venue.id) }" 
+                  @click="handleVenueClick(venue)"
+                >
+                  <!-- 直接顯示後端回傳的 Name，解決無限擴充 i18n 問題 -->
+                  <span>{{ $t('venueNames.' + venue.id) }}</span>
+                  <span v-if="subscribedVenueIds.has(venue.id)" class="check">✓</span>
+                </div>
+                
+                <!-- 若載入中 -->
+                <div v-if="isLoading" class="drawer-link" style="color:#999; font-size:12px;">
+                  Loading...
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-divider"></div>
+
+          <!-- 3. 語言設定 -->
           <div class="accordion-item">
             <div class="accordion-header" @click="toggleLang">
               <span class="accordion-title">🌐 {{ $t('header.language') }}</span>
               <span class="arrow" :class="{ rotated: isLangExpanded }">▼</span>
             </div>
-            
             <div v-show="isLangExpanded" class="accordion-body">
               <div class="lang-options">
                 <div class="lang-item" :class="{ active: locale === 'zh-TW' }" @click="changeLocale('zh-TW')">
@@ -96,14 +123,13 @@
           </div>
 
         </div>
-        
         <div class="drawer-footer">
           <span class="version-text">SKJL Calendar v1.0</span>
         </div>
       </div>
     </Teleport>
 
-    <!-- 登出確認彈窗 -->
+    <!-- 登出確認 -->
     <BaseModal 
       :show="showLogoutModal" 
       :title="$t('auth.logoutConfirmTitle')"
@@ -118,15 +144,37 @@
         <button class="btn-confirm" @click="confirmLogout">{{ $t('auth.confirmLogout') }}</button>
       </div>
     </BaseModal>
+
+    <!-- 🔥 場館訂閱確認 (取代原本的 VenueSubscriptionModal) -->
+    <BaseModal 
+      :show="showVenueConfirmModal" 
+      :title="venueModalTitle"
+      width="320px"
+      @close="showVenueConfirmModal = false"
+    >
+      <!-- 支援換行符號 -->
+      <p style="text-align: center; color: #666; margin-bottom: 20px; white-space: pre-line;">
+        {{ venueModalText }}
+      </p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" @click="showVenueConfirmModal = false">{{ $t('common.cancel') }}</button>
+        <!-- 點擊確認後，執行真正的訂閱動作 -->
+        <button class="btn-confirm" @click="confirmSubscribeVenue">
+           {{ isSubscribingAction ? $t('venue.subscribe') : $t('venue.unsubscribe') }}
+        </button>
+      </div>
+    </BaseModal>
+
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SkjlLogo from '../SkjlLogo.vue'
 import BaseModal from '../../components/common/BaseModal.vue'
-import { preferenceApi } from '../../services/preferenceApi' // 🔥 新增
+import { preferenceApi } from '../../services/preferenceApi' 
+import { useVenues } from '../../composables/useVenues' // 引入邏輯
 
 const props = defineProps({
   username: { type: String, required: true },
@@ -134,31 +182,87 @@ const props = defineProps({
 })
 const emit = defineEmits(['logout'])
 
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 const isAdmin = computed(() => props.userRole === 'ADMIN')
+
+// 狀態控制
 const showLogoutModal = ref(false)
 const isDrawerOpen = ref(false)
 
 const isNavExpanded = ref(false)
 const isLangExpanded = ref(false)
+const isVenuesExpanded = ref(true) // 預設展開場館列表
 
+// 引入 useVenues
+const { 
+  availableVenues, 
+  subscribedVenueIds, 
+  toggleVenueSubscription, 
+  fetchVenueList, 
+  isLoading 
+} = useVenues();
+
+// 🔥 場館訂閱確認視窗的狀態
+const showVenueConfirmModal = ref(false)
+const targetVenue = ref(null) // 當前選中的場館
+const isSubscribingAction = ref(true) // true=要訂閱, false=要取消
+
+// 文字內容 (Computed)
+const venueModalTitle = computed(() => 
+  isSubscribingAction.value ? t('venue.subscribeConfirmTitle') : t('venue.unsubscribeConfirmTitle')
+)
+const venueModalText = computed(() => {
+  if (!targetVenue.value) return ''
+  // 🔥 這裡改用 t('venueNames.' + id)
+  const translatedName = t(`venueNames.${targetVenue.value.id}`)
+  
+  return isSubscribingAction.value 
+    ? t('venue.subscribeConfirmText', { name: translatedName })
+    : t('venue.unsubscribeConfirmText', { name: translatedName })
+})
+
+// Toggle 控制
 const openDrawer = () => { isDrawerOpen.value = true }
 const toggleNav = () => { isNavExpanded.value = !isNavExpanded.value }
 const toggleLang = () => { isLangExpanded.value = !isLangExpanded.value }
+const toggleVenues = () => { isVenuesExpanded.value = !isVenuesExpanded.value }
 
-// 🔥 修改：同步至後端 + localStorage
+// 🔥 處理場館點擊
+const handleVenueClick = (venue) => {
+  const isSubscribed = subscribedVenueIds.value.has(venue.id);
+  targetVenue.value = venue;
+
+  if (!isSubscribed) {
+    // 情況 A: 尚未訂閱 -> 跳出確認視窗 (這符合你說的第一次點擊跳窗)
+    isSubscribingAction.value = true;
+    showVenueConfirmModal.value = true;
+  } else {
+    // 情況 B: 已經訂閱 -> 直接取消 (或者你想取消也跳窗？這裡我先設定為直接取消，符合 toggle 直覺)
+    // 如果你希望取消也跳窗，就把下面兩行註解拿掉，並註解 toggleVenueSubscription
+    /*
+    isSubscribingAction.value = false;
+    showVenueConfirmModal.value = true;
+    */
+    toggleVenueSubscription(venue.id);
+  }
+}
+
+// 確認訂閱 (Modal 按下確定後)
+const confirmSubscribeVenue = async () => {
+  if (targetVenue.value) {
+    await toggleVenueSubscription(targetVenue.value.id);
+  }
+  showVenueConfirmModal.value = false;
+}
+
+// 語言切換
 const changeLocale = async (lang) => {
-  // 1. 先更新前端 (立即反應)
   locale.value = lang
   localStorage.setItem('user-locale', lang)
-  
-  // 2. 非同步同步至後端 (失敗不影響 UX)
   try {
     await preferenceApi.updateLanguage(lang)
-    console.log('✅ 語言已同步至後端:', lang)
   } catch (error) {
-    console.warn('⚠️ 語言同步後端失敗 (已儲存至本地):', error)
-    // 不顯示錯誤訊息給用戶，因為前端已經切換成功
+    console.warn('⚠️ 語言同步後端失敗:', error)
   }
 }
 
@@ -167,10 +271,15 @@ const confirmLogout = () => {
   showLogoutModal.value = false
   emit('logout')
 }
+
+// 初始化抓取場館列表
+onMounted(() => {
+  fetchVenueList();
+})
 </script>
 
 <style scoped>
-/* 樣式完全保留您指定的設計 */
+/* 保持原有樣式，新增或重複使用 .lang-item 樣式給場館列表 */
 .header { background: #c4c0b4; border-bottom: 1px solid #eee; position: relative; z-index: 100; width: 100%; }
 .header-content { width: 100%; height: 60px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
 .left-section { display: flex; align-items: center; gap: 15px; }
@@ -208,10 +317,13 @@ const confirmLogout = () => {
 .arrow { font-size: 10px; color: #888; transition: transform 0.3s; }
 .arrow.rotated { transform: rotate(180deg); }
 .accordion-body { padding-left: 15px; padding-top: 5px; animation: fadeIn 0.2s ease-out; }
+
+/* 重複使用 lang-item 樣式給場館列表，這樣外觀會跟語言選單一模一樣 */
 .lang-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; cursor: pointer; border-radius: 4px; color: #555; font-size: 14px; }
 .lang-item:hover { background: #f5f7f5; }
 .lang-item.active { background: #e8f5e9; color: #557c55; font-weight: 500; }
 .check { font-weight: bold; }
+
 .drawer-nav-links { display: flex; flex-direction: column; gap: 5px; }
 .drawer-link { text-decoration: none; color: #555; padding: 10px; border-radius: 4px; font-size: 14px; transition: background 0.2s; }
 .drawer-link:hover { background: #f5f7f5; color: #557c55; }

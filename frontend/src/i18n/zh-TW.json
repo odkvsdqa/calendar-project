@@ -30,10 +30,23 @@
   },
   "header": {
     "calendar": "日曆",
-    "admin": "後台",
+    "admin": "後台管理",
     "settings": "設定",
     "navigation": "導航",
-    "language": "語言"
+    "language": "語言",
+    "venues": "熱門場館訂閱"  
+  }, 
+  "venueNames": {
+    "tmc": "臺北流行音樂中心",
+    "taipei-dome": "臺北大巨蛋"
+  },
+  "venue": {
+    "subscribeConfirmTitle": "訂閱確認",
+    "subscribeConfirmText": "是否訂閱「{name}」？\n訂閱後，該場館的行程將自動同步至您的日曆。",
+    "unsubscribeConfirmTitle": "取消訂閱",
+    "unsubscribeConfirmText": "確定要取消訂閱「{name}」嗎？相關活動將從日曆中移除。",
+    "subscribe": "訂閱",
+    "unsubscribe": "取消訂閱"
   },
   "auth": {
     "login": "登入",

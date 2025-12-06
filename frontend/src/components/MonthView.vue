@@ -506,6 +506,8 @@ watch(() => props.events, renderCalendar, { deep: true });
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  min-width: 0;
+  overflow: hidden;
 }
 .day:hover {
   background: #f5f7f5;

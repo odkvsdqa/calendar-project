@@ -27,15 +27,16 @@
     </div>
 
     <!-- 後續載入時的 Loading 遮罩 -->
-    <!-- ✅ 替換為共用組件 -->
     <LoadingOverlay :visible="loading" />
 
     <div v-if="error" class="error">{{ error }}</div>
 
+    <!-- 🔥 關鍵修改：傳入 :events="displayEvents" (合併後的資料) -->
+    
     <YearView
       v-if="viewMode === 'year'"
       :current-date="currentDate"
-      :events="events"
+      :events="displayEvents"  
       @go-to-date="goToDate"
       @change-view="changeViewMode"
     />
@@ -43,7 +44,7 @@
     <MonthView
       v-else-if="viewMode === 'month'"
       :current-date="currentDate"
-      :events="events"
+      :events="displayEvents"
       @add-event="openEventModal"
       @edit-event="editEvent"
       @change-view="changeViewMode"
@@ -52,7 +53,7 @@
     <DayView
       v-else-if="viewMode === 'day'"
       :current-date="currentDate"
-      :events="events"
+      :events="displayEvents"
       @add-event-at-time="openEventModalAtTime"
       @edit-event="editEvent"
       @change-view="changeViewMode"
@@ -71,7 +72,7 @@
 <script setup>
 import { formatDateTimeLocal, formatToIsoString } from "../utils/dateFormatter";
 import { ref, computed, watch } from "vue";
-import { useI18n } from 'vue-i18n'; // 🔥 引入
+import { useI18n } from 'vue-i18n';
 import YearView from "./YearView.vue";
 import MonthView from "./MonthView.vue";
 import DayView from "./DayView.vue";
@@ -79,10 +80,11 @@ import EventModal from "./EventModal.vue";
 import { eventApi } from "../services/api";
 import { handleApiError } from "../utils/errorHandle";
 import { useToast } from "../composables/useToast";
-import { useCalendarNavigation } from "../composables/useCalendarNavigation"; // 🔥 引入
+import { useCalendarNavigation } from "../composables/useCalendarNavigation";
 import LoadingOverlay from "./common/LoadingOverlay.vue";
+import { useVenues } from "../composables/useVenues"; // 🔥 新增引用
 
-const { t, locale } = useI18n() // 🔥 補上 locale
+const { t, locale } = useI18n()
 const { showToast } = useToast();
 const currentDate = ref(new Date());
 
@@ -106,34 +108,44 @@ const eventForm = ref({
 const { previousPeriod, nextPeriod, goToToday, handleWheel } =
   useCalendarNavigation(currentDate, viewMode);
 
-// 🔥 新增：處理子組件請求切換視圖 (給 Task 3 用)
+// 🔥 新增：訂閱場館邏輯
+const { allExternalEvents } = useVenues(); // 取得外部事件
+
+// 處理子組件請求切換視圖
 const changeViewMode = (mode, date) => {
   if (date) currentDate.value = new Date(date);
   viewMode.value = mode;
 };
 
-// 🔥 監聽 viewMode 變化，存入 localStorage
+// 監聽 viewMode 變化，存入 localStorage
 watch(viewMode, (newMode) => {
   localStorage.setItem('calendarViewMode', newMode)
 })
 
-// 🔥 關鍵改動：使用 await 來初始化資料
-const events = ref([]);
-// 由於 setup 中不能直接用 top-level await (除非配置 suspense)，這裡改回傳統 async 函數呼叫
+const events = ref([]); // 這只是使用者的私人事件
+
+// 🔥 核心邏輯：合併「私人事件」與「外部訂閱事件」
+const displayEvents = computed(() => {
+  // 展開合併兩個陣列
+  // 如果 events 是 null/undefined 則給空陣列
+  const userEvents = Array.isArray(events.value) ? events.value : [];
+  const external = Array.isArray(allExternalEvents.value) ? allExternalEvents.value : [];
+  
+  return [...userEvents, ...external];
+});
+
 const initEvents = async () => {
   try {
     const response = await eventApi.getAllEvents();
     events.value = Array.isArray(response.data) ? response.data : [];
   } catch (err) {
-    // error.value = handleApiError(err, t('errors.loadEventsFailed'));
-    // 初始化失敗暫時不阻擋渲染，僅 log
     console.error(err)
     events.value = [];
   }
 }
 initEvents()
 
-// 🔥 修改：根據當前語言格式化標題
+// 根據當前語言格式化標題
 const currentPeriodText = computed(() => {
   const date = currentDate.value
   
@@ -147,7 +159,7 @@ const currentPeriodText = computed(() => {
   }
 });
 
-// 後續的重新載入函數（用於 CRUD 操作後）
+// 後續的重新載入函數
 const loadEvents = async () => {
   try {
     loading.value = true;
@@ -235,6 +247,12 @@ const openEventModalAtTime = (hour) => {
 };
 
 const editEvent = (event) => {
+  // 🔥 防止使用者編輯外部訂閱事件
+  if (event.isExternal) {
+    showToast('無法編輯外部來源的活動', 'info');
+    return;
+  }
+
   showModal.value = true;
   eventForm.value = {
     id: event.id,
@@ -310,7 +328,6 @@ const deleteEvent = async (eventId) => {
 /* 最外層控制列 Grid */
 .controls {
   display: grid;
-  /* 🔥 修改 1：中間改用 max-content，強迫格子寬度只包住內容，不准拉伸 */
   grid-template-columns: 1fr max-content 1fr; 
   justify-content: space-between;
   align-items: center;
@@ -321,38 +338,25 @@ const deleteEvent = async (eventId) => {
   gap: 15px;
 }
 
-/* 左側 */
 .left-group {
   justify-self: start;
 }
 
-/* 中間區塊：包含 左箭頭 + 日期 + 右箭頭 */
 .center-group { 
-  /* 🔥 修改 2：改用 inline-flex，這會讓盒子像文字一樣緊湊 */
   display: inline-flex; 
   align-items: center; 
   justify-content: center; 
-  
-  /* 🔥 修改 3：設定固定間距，不管螢幕多大，它們距離永遠是 10px */
   gap: 10px; 
-  
-  /* 確保寬度自動 */
   width: auto;
   min-width: 0;
 }
 
-/* 日期文字 */
 .date-title {
   font-size: 20px;
   font-weight: 400;
   letter-spacing: 0.05em;
   color: #222;
-  
-  /* 🔥 修改 4：【核彈級設定】 flex: none */
-  /* 這告訴瀏覽器：「這個文字不准放大、不准縮小、寬度自動」 */
-  /* 這樣它就絕對不會去推擠旁邊的箭頭 */
   flex: none; 
-  
   text-align: center;
   white-space: nowrap;
   line-height: 1;
@@ -400,7 +404,6 @@ const deleteEvent = async (eventId) => {
   font-weight: 500;
 }
 
-/* 右側組合 */
 .right-group {
   display: flex;
   justify-self: end;
@@ -415,13 +418,10 @@ const deleteEvent = async (eventId) => {
   cursor: pointer;
   color: #666;
   font-size: 13px;
-
-  /* 🔥 新增以下兩行：強制不換行，且不允許被壓縮 */
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* 新增按鈕 */
 .btn-primary {
   background: #557c55;
   color: white;
@@ -437,24 +437,18 @@ const deleteEvent = async (eventId) => {
 }
 
 .btn-primary:hover {
-  /* 👇 修改：Hover 變得更深一點 */
   background: #446344;
-  opacity: 1; /* 原本是 opacity 0.9，改顏色比較質感 */
+  opacity: 1;
 }
 
-/* 左右箭頭 */
 .nav-arrow {
   background: transparent; 
   border: none; 
   font-size: 14px; 
   color: #999; 
   cursor: pointer; 
-  
-  /* 🔥 修正 5：減少內距，讓它靠得更近 */
   padding: 4px;
-  margin: 0; /* 清除所有外距 */
-  
-  /* 確保按鈕不會變形 */
+  margin: 0; 
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -482,7 +476,6 @@ const deleteEvent = async (eventId) => {
     gap: 8px;
     flex-direction: column;
     align-items: stretch;
-    /* 手機版改回 Flex，方便換行 */
     display: flex;
   }
 
@@ -495,13 +488,12 @@ const deleteEvent = async (eventId) => {
     font-size: 16px;
   }
 
-  /* 手機版讓中間區塊置中 */
   .center-group {
-    order: -1; /* 讓日期跑到最上面 */
+    order: -1; 
     width: 100%; 
     justify-content: center;
     margin-bottom: 5px;
-    gap: 15px; /* 手機版可以稍微寬一點 */
+    gap: 15px; 
   }
 }
 </style>

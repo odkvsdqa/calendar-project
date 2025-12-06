@@ -17,7 +17,20 @@
     "admin": "管理画面",
     "settings": "設定",
     "navigation": "ナビゲーション",
-    "language": "言語"
+    "language": "言語",
+    "venues": "会場購読"
+  },
+   "venueNames": {
+    "tmc": "台北流行音楽センター",
+    "taipei-dome": "台北ドーム"
+  },
+  "venue": {
+    "subscribeConfirmTitle": "購読の確認",
+    "subscribeConfirmText": "「{name}」を購読しますか？\nスケジュールがカレンダーに自動的に同期されます。",
+    "unsubscribeConfirmTitle": "購読解除",
+    "unsubscribeConfirmText": "「{name}」の購読を解除しますか？イベントは削除されます。",
+    "subscribe": "購読する",
+    "unsubscribe": "解除する"
   },
   "errors": {
     "default": "操作に失敗しました",

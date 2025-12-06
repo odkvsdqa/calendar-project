@@ -12,12 +12,25 @@
     "person": "users",
     "unit": "Unit"
   },
-  "header": {
+   "header": {
     "calendar": "Calendar",
-    "admin": "Admin",
+    "admin": "Admin Dashboard",
     "settings": "Settings",
     "navigation": "Navigation",
-    "language": "Language"
+    "language": "Language",
+    "venues": "Venue Subscription"
+  },
+  "venueNames": {
+    "tmc": "Taipei Music Center",
+    "taipei-dome": "Taipei Dome"
+  },
+  "venue": {
+    "subscribeConfirmTitle": "Confirm Subscription",
+    "subscribeConfirmText": "Subscribe to \"{name}\"?\nEvents will be automatically synced to your calendar.",
+    "unsubscribeConfirmTitle": "Unsubscribe",
+    "unsubscribeConfirmText": "Unsubscribe from \"{name}\"? Events will be removed.",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe"
   },
   "errors": {
     "default": "Operation failed",
