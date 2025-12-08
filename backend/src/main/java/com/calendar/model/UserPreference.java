@@ -1,95 +1,65 @@
 package com.calendar.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
 import java.time.LocalDateTime;
 
-/**
- * 使用者偏好設定實體
- * 用於儲存使用者的語言偏好等設定
- * 
- * 對應資料表: user_preferences
- */
 @Entity
 @Table(name = "user_preferences")
 public class UserPreference {
-
+    
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(columnDefinition = "VARCHAR(36)")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-
-    /**
-     * 關聯的使用者 (一對一關係)
-     */
+    
     @OneToOne
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+    
+    @Column(name = "language", length = 10)
+    private String language = "zh-TW"; // 預設繁體中文
+    
+    // 🔥 v1.1 新增：主題設定
+    @Column(name = "theme", length = 20)
+    private String theme = "light"; // 預設淺色模式
 
-    /**
-     * 語言偏好
-     * 預設值: zh-TW
-     * 可選值: zh-TW, en-US, ja-JP
-     */
-    @Column(name = "language", length = 10, nullable = false)
-    private String language = "zh-TW";
-
-    /**
-     * 更新時間
-     */
+    // 🔥 v1.1 新增：時區設定
+    @Column(name = "timezone", length = 50)
+    private String timezone = "Asia/Taipei"; // 預設台北時間
+    
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    // ==================== Lifecycle Callbacks ====================
-
-    @PrePersist
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // ==================== Constructors ====================
-
-    public UserPreference() {
-    }
-
+    
+    public UserPreference() {}
+    
     public UserPreference(User user, String language) {
         this.user = user;
         this.language = language;
+        this.theme = "light";
+        this.timezone = "Asia/Taipei";
+    }
+    
+    @PrePersist
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
-    // ==================== Getters and Setters ====================
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    // === Getters and Setters ===
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { this.language = language; }
+    
+    public String getTheme() { return theme; }
+    public void setTheme(String theme) { this.theme = theme; }
+    
+    public String getTimezone() { return timezone; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
+    
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

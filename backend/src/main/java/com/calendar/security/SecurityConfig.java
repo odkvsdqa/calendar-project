@@ -60,6 +60,9 @@ public class SecurityConfig {
                 // 允許訪問認證相關 API
                 .requestMatchers("/api/auth/**").permitAll()
                 
+             // 🔥 新增：允許獲取時區清單（不需登入）
+                .requestMatchers("/api/preferences/timezones").permitAll()
+                
                 // 管理員專用 API - 需要 ADMIN 角色
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
