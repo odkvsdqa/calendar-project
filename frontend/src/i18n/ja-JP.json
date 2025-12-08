@@ -18,9 +18,11 @@
     "settings": "設定",
     "navigation": "ナビゲーション",
     "language": "言語",
-    "venues": "会場購読"
+    "venues": "会場購読",
+    "theme": "テーマ",
+    "timezone": "タイムゾーン"
   },
-   "venueNames": {
+  "venueNames": {
     "tmc": "台北流行音楽センター",
     "taipei-dome": "台北ドーム"
   },
@@ -31,6 +33,23 @@
     "unsubscribeConfirmText": "「{name}」の購読を解除しますか？イベントは削除されます。",
     "subscribe": "購読する",
     "unsubscribe": "解除する"
+  },
+  "theme": {
+    "light": "ライトモード",
+    "dark": "ダークモード",
+    "system": "システムに従う"
+  },
+  "timezones": {
+    "Asia_Taipei": "台北 (GMT+8)",
+    "Asia_Tokyo": "東京 (GMT+9)",
+    "Asia_Seoul": "ソウル (GMT+9)",
+    "Asia_Hong_Kong": "香港 (GMT+8)",
+    "Asia_Singapore": "シンガポール (GMT+8)",
+    "America_New_York": "ニューヨーク (GMT-5)",
+    "Europe_London": "ロンドン (GMT+0)",
+    "Europe_Paris": "パリ (GMT+1)",
+    "Australia_Sydney": "シドニー (GMT+11)",
+    "America_Los_Angeles": "ロサンゼルス (GMT-8)"
   },
   "errors": {
     "default": "操作に失敗しました",

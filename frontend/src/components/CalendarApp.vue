@@ -109,7 +109,7 @@ const { previousPeriod, nextPeriod, goToToday, handleWheel } =
   useCalendarNavigation(currentDate, viewMode);
 
 // 🔥 新增：訂閱場館邏輯
-const { allExternalEvents } = useVenues(); // 取得外部事件
+const { allExternalEvents, restoreSubscriptions } = useVenues(); // 取得外部事件
 
 // 處理子組件請求切換視圖
 const changeViewMode = (mode, date) => {
@@ -144,7 +144,14 @@ const initEvents = async () => {
   }
 }
 initEvents()
-
+import { onMounted } from 'vue';
+onMounted(async () => {
+  // 1. 初始化使用者自己的事件
+  await initEvents(); 
+  
+  // 2. 🔥 自動還原外部場館訂閱
+  await restoreSubscriptions();
+});
 // 根據當前語言格式化標題
 const currentPeriodText = computed(() => {
   const date = currentDate.value

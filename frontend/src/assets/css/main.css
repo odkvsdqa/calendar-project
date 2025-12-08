@@ -1,0 +1,126 @@
+/**
+ * SKJL 日曆系統 - CSS 變數系統
+ * v1.1 支援淺色/深色主題切換
+ */
+
+/* ========================================
+   淺色模式（預設）
+   ======================================== */
+:root {
+  /* 背景色 */
+  --bg-primary: #f3f4f6;        /* 全域背景 */
+  --bg-secondary: #ffffff;      /* 卡片背景 */
+  --bg-hover: #f9f9f9;          /* Hover 背景 */
+  
+  /* 文字色 */
+  --text-primary: #333333;      /* 主要文字 */
+  --text-secondary: #666666;    /* 次要文字 */
+  --text-muted: #999999;        /* 弱化文字 */
+  
+  /* 品牌色（不變）*/
+  --color-primary: #557c55;     /* 森綠色 */
+  --color-primary-hover: #446344;
+  
+  /* Header 背景（固定，不受主題影響）*/
+  --header-bg: #c4c0b4;         /* 奶茶灰 */
+  
+  /* 邊框與分隔線 */
+  --border-color: #e0e0e0;
+  --divider-color: #eee;
+  
+  /* 場館代表色（不變）*/
+  --venue-tmc: #E09F7D;         /* 北流：柔和赤陶色 */
+  --venue-dome: #7C8DB5;        /* 大巨蛋：霧霾藍 */
+  
+  /* 陰影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================
+   深色模式
+   ======================================== */
+[data-theme="dark"] {
+  /* 背景色 */
+  --bg-primary: #1a1a1a;        /* 全域背景 */
+  --bg-secondary: #2d2d2d;      /* 卡片背景 */
+  --bg-hover: #3a3a3a;          /* Hover 背景 */
+  
+  /* 文字色 */
+  --text-primary: #e5e5e5;      /* 主要文字 */
+  --text-secondary: #b0b0b0;    /* 次要文字 */
+  --text-muted: #808080;        /* 弱化文字 */
+  
+  /* 品牌色（提亮）*/
+  --color-primary: #6b9a6b;     /* 森綠色（深色版）*/
+  --color-primary-hover: #7fb07f;
+  
+  /* Header 背景（深色版）*/
+  --header-bg: #3a3a35;
+  
+  /* 邊框與分隔線 */
+  --border-color: #404040;
+  --divider-color: #333333;
+  
+  /* 陰影（深色模式用較亮的陰影）*/
+  --shadow-sm: 0 1px 2px rgba(255, 255, 255, 0.05);
+  --shadow-md: 0 4px 6px rgba(255, 255, 255, 0.1);
+  --shadow-lg: 0 10px 15px rgba(255, 255, 255, 0.15);
+}
+
+/* ========================================
+   全域樣式應用
+   ======================================== */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 卡片樣式 */
+.card,
+.month-card,
+.event-card,
+.admin-card {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* 按鈕 Hover */
+button:hover {
+  background-color: var(--bg-hover);
+}
+
+/* 輸入框 */
+input,
+textarea,
+select {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+/* 分隔線 */
+.divider,
+.drawer-divider,
+hr {
+  border-color: var(--divider-color);
+}
+
+/* ========================================
+   過渡動畫
+   ======================================== */
+* {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease;
+}
+
+/* 避免對特定元素套用過渡 */
+button,
+a,
+input[type="checkbox"] {
+  transition: all 0.2s ease;
+}

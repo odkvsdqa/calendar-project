@@ -1,5 +1,5 @@
 {
-"common": {
+  "common": {
     "confirm": "確定",
     "cancel": "取消",
     "save": "儲存",
@@ -34,8 +34,10 @@
     "settings": "設定",
     "navigation": "導航",
     "language": "語言",
-    "venues": "熱門場館訂閱"  
-  }, 
+    "venues": "熱門場館訂閱",
+    "theme": "主題外觀",
+    "timezone": "時區設定"
+  },
   "venueNames": {
     "tmc": "臺北流行音樂中心",
     "taipei-dome": "臺北大巨蛋"
@@ -47,6 +49,23 @@
     "unsubscribeConfirmText": "確定要取消訂閱「{name}」嗎？相關活動將從日曆中移除。",
     "subscribe": "訂閱",
     "unsubscribe": "取消訂閱"
+  },
+  "theme": {
+    "light": "淺色模式",
+    "dark": "深色模式",
+    "system": "跟隨系統"
+  },
+  "timezones": {
+    "Asia_Taipei": "台北 (GMT+8)",
+    "Asia_Tokyo": "東京 (GMT+9)",
+    "Asia_Seoul": "首爾 (GMT+9)",
+    "Asia_Hong_Kong": "香港 (GMT+8)",
+    "Asia_Singapore": "新加坡 (GMT+8)",
+    "America_New_York": "紐約 (GMT-5)",
+    "Europe_London": "倫敦 (GMT+0)",
+    "Europe_Paris": "巴黎 (GMT+1)",
+    "Australia_Sydney": "雪梨 (GMT+11)",
+    "America_Los_Angeles": "洛杉磯 (GMT-8)"
   },
   "auth": {
     "login": "登入",
@@ -66,10 +85,10 @@
     "sloganTitle": "SKJL 預定",
     "sloganDesc": "簡約、流暢、高效的行程管理\n讓您的時間更有價值",
     "errors": {
-        "passwordMismatch": "兩次輸入的密碼不一致",
-        "registerFailed": "註冊失敗，請稍後再試",
-        "loginFailed": "登入失敗，請檢查用戶名和密碼",
-        "noPermission": "您沒有權限訪問此頁面"
+      "passwordMismatch": "兩次輸入的密碼不一致",
+      "registerFailed": "註冊失敗，請稍後再試",
+      "loginFailed": "登入失敗，請檢查用戶名和密碼",
+      "noPermission": "您沒有權限訪問此頁面"
     }
   },
   "calendar": {
@@ -119,12 +138,12 @@
       "userSchedule": "用戶排程"
     },
     "stats": { 
-       "activeUsers": "活躍用戶數",
-       "totalEvents": "總事件數",
-       "totalBudget": "本月總預算",
-       "estimatedCost": "預計總花費",
-       "scheduledDays": "有排程的天數",
-       "scheduledUsers": "有排程的用戶數"
+      "activeUsers": "活躍用戶數",
+      "totalEvents": "總事件數",
+      "totalBudget": "本月總預算",
+      "estimatedCost": "預計總花費",
+      "scheduledDays": "有排程的天數",
+      "scheduledUsers": "有排程的用戶數"
     },
     "components": {
       "dateQuery": {
@@ -157,9 +176,9 @@
       }
     },
     "errors": {
-        "selectDate": "請選擇日期",
-        "queryFailed": "查詢失敗，請稍後再試",
-        "selectTimeRange": "請選擇開始和結束時間"
+      "selectDate": "請選擇日期",
+      "queryFailed": "查詢失敗，請稍後再試",
+      "selectTimeRange": "請選擇開始和結束時間"
     }
   }
 }

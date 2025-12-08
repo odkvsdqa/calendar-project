@@ -12,13 +12,15 @@
     "person": "users",
     "unit": "Unit"
   },
-   "header": {
+  "header": {
     "calendar": "Calendar",
     "admin": "Admin Dashboard",
     "settings": "Settings",
     "navigation": "Navigation",
     "language": "Language",
-    "venues": "Venue Subscription"
+    "venues": "Venue Subscription",
+    "theme": "Theme",
+    "timezone": "Timezone"
   },
   "venueNames": {
     "tmc": "Taipei Music Center",
@@ -31,6 +33,23 @@
     "unsubscribeConfirmText": "Unsubscribe from \"{name}\"? Events will be removed.",
     "subscribe": "Subscribe",
     "unsubscribe": "Unsubscribe"
+  },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "system": "Follow System"
+  },
+  "timezones": {
+    "Asia_Taipei": "Taipei (GMT+8)",
+    "Asia_Tokyo": "Tokyo (GMT+9)",
+    "Asia_Seoul": "Seoul (GMT+9)",
+    "Asia_Hong_Kong": "Hong Kong (GMT+8)",
+    "Asia_Singapore": "Singapore (GMT+8)",
+    "America_New_York": "New York (GMT-5)",
+    "Europe_London": "London (GMT+0)",
+    "Europe_Paris": "Paris (GMT+1)",
+    "Australia_Sydney": "Sydney (GMT+11)",
+    "America_Los_Angeles": "Los Angeles (GMT-8)"
   },
   "errors": {
     "default": "Operation failed",
