@@ -161,4 +161,25 @@ public class Event {
     public BigDecimal getEstimatedCost() {
         return financial != null ? financial.getEstimatedCost() : BigDecimal.ZERO;
     }
+    
+    /**
+     * 取得幣別（從 EventFinancial）
+     * @Transient 表示不直接對應資料表欄位
+     */
+    @Transient
+    public String getCurrency() {
+        return financial != null ? financial.getCurrency() : "TWD";
+    }
+
+    /**
+     * 設定幣別（同步到 EventFinancial）
+     */
+    public void setCurrency(String currency) {
+        // 如果 financial 還不存在，先建立
+        if (this.financial == null) {
+            this.financial = new EventFinancial();
+            this.financial.setEvent(this);
+        }
+        this.financial.setCurrency(currency);
+    }
 }
