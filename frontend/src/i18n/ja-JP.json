@@ -129,6 +129,14 @@
     "deleteConfirmTitle": "削除の確認",
     "deleteConfirmText": "この予定を削除してもよろしいですか？"
   },
+  "currencies": {
+    "TWD": "台湾ドル (NT$)",
+    "USD": "米ドル ($)",
+    "JPY": "日本円 (¥)",
+    "EUR": "ユーロ (€)",
+    "CNY": "人民元 (¥)",
+    "KRW": "韓国ウォン (₩)"
+  },
   "admin": {
     "dashboard": "管理者ダッシュボード",
     "tabs": {

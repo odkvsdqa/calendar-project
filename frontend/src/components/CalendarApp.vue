@@ -102,7 +102,8 @@ const eventForm = ref({
   startTime: "",
   endTime: "",
   color: "#7c8db5",
-  estimatedCost: null
+  estimatedCost: null,
+  currency: "TWD" // 🔥 加上預設值
 });
 
 const { previousPeriod, nextPeriod, goToToday, handleWheel } =
@@ -201,7 +202,8 @@ const openEventModal = (date) => {
     startTime: "",
     endTime: "",
     color: "#7c8db5",
-    estimatedCost: null, 
+    estimatedCost: null,
+    currency: "TWD" // 🔥 確保新事件有預設幣別 
   };
 
   if (date) {
@@ -250,6 +252,7 @@ const openEventModalAtTime = (hour) => {
     endTime: formatDateTimeLocal(endDate),
     color: "#7c8db5",
     estimatedCost: null, 
+    currency: "TWD" // 🔥 加上預設幣別
   };
 };
 
@@ -269,6 +272,7 @@ const editEvent = (event) => {
     endTime: formatDateTimeLocal(new Date(event.endTime)),
     color: event.color || "#7c8db5",
     estimatedCost: event.estimatedCost || null,
+    currency: event.currency || "TWD" // 🔥 如果舊資料沒有，給預設值
   };
 };
 

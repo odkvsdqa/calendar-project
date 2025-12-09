@@ -129,6 +129,14 @@
     "deleteConfirmTitle": "Delete Event",
     "deleteConfirmText": "Are you sure you want to delete this event?"
   },
+  "currencies": {
+    "TWD": "Taiwan Dollar (NT$)",
+    "USD": "US Dollar ($)",
+    "JPY": "Japanese Yen (¥)",
+    "EUR": "Euro (€)",
+    "CNY": "Chinese Yuan (¥)",
+    "KRW": "Korean Won (₩)"
+  },
   "admin": {
     "dashboard": "Admin Dashboard",
     "tabs": {

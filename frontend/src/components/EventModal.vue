@@ -20,10 +20,20 @@
       </div>
 
       <div class="form-group">
-        <!-- 預計花費 -->
+        <!-- 🔥 預計花費（含幣別選擇）-->
         <label>{{ $t('event.cost') }}</label>
-        <div class="cost-input-wrapper">
-          <span class="currency-symbol">NT$</span>
+        <div class="cost-input-group">
+          <!-- 幣別選擇下拉 -->
+          <select v-model="localForm.currency" class="currency-select">
+            <option value="TWD">NT$</option>
+            <option value="USD">$</option>
+            <option value="JPY">¥</option>
+            <option value="EUR">€</option>
+            <option value="CNY">¥</option>
+            <option value="KRW">₩</option>
+          </select>
+          
+          <!-- 金額輸入框 -->
           <input 
             type="number" 
             v-model="localForm.estimatedCost" 
@@ -118,12 +128,11 @@ import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './common/BaseModal.vue'
 
-// 初始化 i18n
 const { t } = useI18n()
 
 const props = defineProps({
   eventForm: Object,
-  modalTitle: { type: String, default: '' } // 移除預設值，改用 computed
+  modalTitle: { type: String, default: '' }
 })
 const emit = defineEmits(['close', 'save', 'delete'])
 const showDeleteConfirm = ref(false)
@@ -136,14 +145,18 @@ const colorOptions = [
 ]
 
 const localForm = ref({
-  id: null, title: '', description: '', startTime: '', endTime: '', 
-  color: '#557c55', estimatedCost: null
+  id: null, 
+  title: '', 
+  description: '', 
+  startTime: '', 
+  endTime: '', 
+  color: '#557c55', 
+  estimatedCost: null,
+  currency: 'TWD' // 🔥 預設新台幣
 })
 
-// 動態計算標題 (新增或編輯)
 const modalTitle = computed(() => {
   if (props.modalTitle) return props.modalTitle
-  // 使用 i18n key
   return localForm.value.id ? t('event.editTitle') : t('event.addTitle')
 })
 
@@ -152,7 +165,8 @@ const syncFormData = () => {
     localForm.value = {
       ...props.eventForm,
       color: props.eventForm.color || '#557c55',
-      estimatedCost: props.eventForm.estimatedCost || null
+      estimatedCost: props.eventForm.estimatedCost || null,
+      currency: props.eventForm.currency || 'TWD' // 🔥 同步幣別
     }
   }
 }
@@ -160,14 +174,16 @@ const syncFormData = () => {
 const handleClose = () => emit('close')
 const handleSubmit = () => emit('save', localForm.value)
 const handleDeleteClick = () => showDeleteConfirm.value = true
-const confirmDelete = () => { showDeleteConfirm.value = false; emit('delete', localForm.value.id) }
+const confirmDelete = () => { 
+  showDeleteConfirm.value = false
+  emit('delete', localForm.value.id) 
+}
 
 syncFormData()
 watch(() => props.eventForm, syncFormData, { deep: true })
 </script>
 
 <style scoped>
-/* 樣式部分僅保留表單內部樣式，BaseModal 會處理外框 */
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: #666; font-weight: 500; }
 
@@ -184,16 +200,36 @@ watch(() => props.eventForm, syncFormData, { deep: true })
 }
 .input-styled:focus { outline: none; border-color: #557c55; }
 
-/* 金額輸入框 */
-.cost-input-wrapper { position: relative; }
-.currency-symbol { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; font-size: 13px; }
-.cost-input { padding-left: 45px; }
+/* 🔥 新增：金額輸入組（幣別 + 金額）*/
+.cost-input-group {
+  display: flex;
+  gap: 8px;
+}
 
-/* 雙欄 */
+.currency-select {
+  width: 85px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.currency-select:focus {
+  outline: none;
+  border-color: #557c55;
+}
+
+.cost-input {
+  flex: 1;
+}
+
 .form-row { display: flex; gap: 8px; }
 .half { flex: 1; }
 
-/* 顏色選擇 */
 .color-picker { display: flex; gap: 10px; }
 .color-option {
   width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
@@ -204,7 +240,6 @@ watch(() => props.eventForm, syncFormData, { deep: true })
 .color-option.active { border-color: #555; }
 .check { color: white; font-size: 14px; }
 
-/* 底部按鈕區 */
 .form-footer {
   margin-top: 30px; 
   display: flex; 
@@ -224,7 +259,6 @@ button {
 .btn-delete { color: #d98e8e; background: transparent; padding-left: 0; }
 .btn-delete:hover { color: #c06060; text-decoration: underline; }
 
-/* 確認彈窗內容 */
 .confirm-content { text-align: center; }
 .confirm-content p { color: #666; margin-bottom: 24px; }
 .confirm-actions { display: flex; justify-content: center; gap: 12px; }
