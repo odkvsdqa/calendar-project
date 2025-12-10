@@ -1,4 +1,16 @@
 {
+  "ja-JP": {
+    "admin": {
+      "stats": {
+        "tabs": {
+          "exchangeRate": "為替レート"
+        },
+        "totalBudget": "今月の総予算",
+        "estimatedCost": "予想総費用",
+        "currencyNote": "💡 ヒント：通貨を切り替えて金額を換算"
+      }
+    }
+  },
   "common": {
     "confirm": "確認",
     "cancel": "キャンセル",
@@ -10,7 +22,10 @@
     "year": "年",
     "month": "月",
     "person": "人",
-    "unit": "単位"
+    "unit": "単位",
+    "update": "更新",
+    "retry": "再試行",
+    "manualUpdate": "手動更新"
   },
   "header": {
     "calendar": "カレンダー",
@@ -24,7 +39,8 @@
   },
   "venueNames": {
     "tmc": "台北流行音楽センター",
-    "taipei-dome": "台北ドーム"
+    "taipei-dome": "台北ドーム",
+     "makuhari-messe": "幕張メッセ" 
   },
   "venue": {
     "subscribeConfirmTitle": "購読の確認",
@@ -126,10 +142,7 @@
       "cost": "0",
       "desc": "詳細を入力..."
     },
-    "deleteConfirmTitle": "削除の確認",
-    "deleteConfirmText": "この予定を削除してもよろしいですか？"
-  },
-  "currencies": {
+    "currencies": {
     "TWD": "台湾ドル (NT$)",
     "USD": "米ドル ($)",
     "JPY": "日本円 (¥)",
@@ -137,13 +150,17 @@
     "CNY": "人民元 (¥)",
     "KRW": "韓国ウォン (₩)"
   },
+    "deleteConfirmTitle": "削除の確認",
+    "deleteConfirmText": "この予定を削除してもよろしいですか？"
+  },
   "admin": {
     "dashboard": "管理者ダッシュボード",
     "tabs": {
       "dateQuery": "日付検索",
       "monthlyStats": "月間統計",
       "timeRange": "期間統計",
-      "userSchedule": "ユーザー予定"
+      "userSchedule": "ユーザー予定",
+      "exchangeRate": "為替レート"
     },
     "stats": {
       "activeUsers": "アクティブユーザー",
@@ -181,6 +198,29 @@
         "empty": "ユーザーを選択して予定を表示",
         "scheduleOf": "のスケジュール",
         "dateList": "予定日リスト:"
+      },
+      "exchangeRate": {
+        "title": "為替レート情報",
+        "lastUpdated": "最終更新",
+        "updating": "更新中...",
+        "updateSuccess": "✅ 為替レート更新成功！",
+        "updateFailed": "❌ 為替レート更新失敗、後ほどお試しください",
+        "loadFailed": "❌ 為替レート情報を読み込めません",
+        "loading": "為替レート情報を読み込み中...",
+        "baseCurrency": "基準通貨",
+        "dataSource": "データソース",
+        "autoUpdate": "レートは毎日午前2時に自動更新されます"
+      }
+    },
+    "exchangeRate": {
+      "status": {
+        "fresh": "最新",
+        "stale": "期限切れ"
+      },
+      "info": {
+        "autoUpdate": "💡 レートは毎日午前2時に自動更新されます",
+        "baseCurrency": "📊 基準通貨：台湾ドル (TWD)",
+        "dataSource": "🌐 データソース：ExchangeRate-API"
       }
     },
     "errors": {

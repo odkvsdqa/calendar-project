@@ -1,4 +1,3 @@
-// src/composables/useCalendarNavigation.js
 import { onMounted, onUnmounted, nextTick } from 'vue'
 
 export function useCalendarNavigation(currentDate, viewMode) {

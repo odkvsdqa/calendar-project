@@ -1,4 +1,13 @@
 {
+  "en-US": {
+    "admin": {
+      "stats": {
+        "totalBudget": "Total Budget",
+        "estimatedCost": "Est. Total Cost",
+        "currencyNote": "💡 Tip: Switch currency to convert amounts"
+      }
+    }
+  },
   "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
@@ -10,7 +19,10 @@
     "year": "Year",
     "month": "Month",
     "person": "users",
-    "unit": "Unit"
+    "unit": "Unit",
+    "update": "Update",
+    "retry": "Retry",
+    "manualUpdate": "Manual Update"
   },
   "header": {
     "calendar": "Calendar",
@@ -24,7 +36,8 @@
   },
   "venueNames": {
     "tmc": "Taipei Music Center",
-    "taipei-dome": "Taipei Dome"
+    "taipei-dome": "Taipei Dome",
+    "makuhari-messe": "Makuhari Messe (Japan)" 
   },
   "venue": {
     "subscribeConfirmTitle": "Confirm Subscription",
@@ -126,10 +139,7 @@
       "cost": "0",
       "desc": "Notes..."
     },
-    "deleteConfirmTitle": "Delete Event",
-    "deleteConfirmText": "Are you sure you want to delete this event?"
-  },
-  "currencies": {
+     "currencies": {
     "TWD": "Taiwan Dollar (NT$)",
     "USD": "US Dollar ($)",
     "JPY": "Japanese Yen (¥)",
@@ -137,13 +147,17 @@
     "CNY": "Chinese Yuan (¥)",
     "KRW": "Korean Won (₩)"
   },
+    "deleteConfirmTitle": "Delete Event",
+    "deleteConfirmText": "Are you sure you want to delete this event?"
+  },
   "admin": {
     "dashboard": "Admin Dashboard",
     "tabs": {
       "dateQuery": "By Date",
       "monthlyStats": "Monthly Stats",
       "timeRange": "Time Range",
-      "userSchedule": "User Schedule"
+      "userSchedule": "User Schedule",
+      "exchangeRate": "Exchange Rates"
     },
     "stats": {
       "activeUsers": "Active Users",
@@ -181,12 +195,35 @@
         "empty": "Select a user to view schedule",
         "scheduleOf": "'s Schedule",
         "dateList": "Scheduled Dates:"
+      },
+      "exchangeRate": {
+        "title": "Exchange Rate Information",
+        "lastUpdated": "Last Updated",
+        "updating": "Updating...",
+        "updateSuccess": "✅ Exchange rates updated successfully!",
+        "updateFailed": "❌ Failed to update exchange rates, please try again later",
+        "loadFailed": "❌ Unable to load exchange rate information",
+        "loading": "Loading exchange rates...",
+        "baseCurrency": "Base Currency",
+        "dataSource": "Data Source",
+        "autoUpdate": "Rates auto-update daily at 2:00 AM"
       }
     },
     "errors": {
       "selectDate": "Please select a date",
       "queryFailed": "Query failed, please try again later",
       "selectTimeRange": "Please select start and end time"
+    },
+    "exchangeRate": {
+      "status": {
+        "fresh": "Current",
+        "stale": "Outdated"
+      },
+      "info": {
+        "autoUpdate": "💡 Rates auto-update daily at 2:00 AM",
+        "baseCurrency": "📊 Base Currency: Taiwan Dollar (TWD)",
+        "dataSource": "🌐 Data Source: ExchangeRate-API"
+      }
     }
   }
 }

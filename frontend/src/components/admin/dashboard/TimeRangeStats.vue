@@ -26,10 +26,20 @@
           <div class="stat-label">{{ $t('admin.stats.totalEvents') }}:</div>
           <div class="stat-number">{{ result.totalEvents }}</div>
         </div>
+        
+        <!-- 🔥 金額卡片：加入幣別切換 -->
         <div class="stat-card cost-card">
-          <div class="stat-label">{{ $t('admin.stats.estimatedCost') }}:</div>
+          <div class="card-header">
+            <div class="stat-label">{{ $t('admin.stats.estimatedCost') }}:</div>
+            <select v-model="selectedCurrency" class="currency-selector">
+              <option v-for="curr in currencies" :key="curr" :value="curr">
+                {{ curr }}
+              </option>
+            </select>
+          </div>
           <div class="stat-number cost-text">
-            <small>NT$</small> {{ formatNumber(result.totalCost) }}
+            <small>{{ getSymbol(selectedCurrency) }}</small> 
+            {{ formatNumber(convertedAmount) }}
           </div>
         </div>
       </div>
@@ -59,13 +69,25 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { adminApi } from '../../../services/adminApi'
+import { useCurrencyConverter } from '../../../composables/useCurrencyConverter'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+const { currencies, convert, getSymbol } = useCurrencyConverter()
+
 const startTime = ref('')
 const endTime = ref('')
+const selectedCurrency = ref('TWD') // 預設幣別
 const result = ref(null)
 const loading = ref(false)
+
+// 換算後的金額（響應式計算）
+const convertedAmount = computed(() => {
+  if (!result.value || !result.value.totalCost) return 0
+  
+  // result.totalCost 是 TWD，需要換算成目標幣別
+  return convert(result.value.totalCost, 'TWD', selectedCurrency.value)
+})
 
 const fetchTimeRangeStats = async () => {
   if (!startTime.value || !endTime.value) { 
@@ -84,13 +106,20 @@ const fetchTimeRangeStats = async () => {
   }
 }
 
-const sortedHourlyStats = computed(() => { if (!result.value || !result.value.hourlyUserCount) return []; return Object.entries(result.value.hourlyUserCount).sort((a, b) => a[0].localeCompare(b[0])) })
-const maxHourlyCount = computed(() => { if (sortedHourlyStats.value.length === 0) return 1; return Math.max(...sortedHourlyStats.value.map(item => item[1])) })
+const sortedHourlyStats = computed(() => { 
+  if (!result.value || !result.value.hourlyUserCount) return []
+  return Object.entries(result.value.hourlyUserCount).sort((a, b) => a[0].localeCompare(b[0])) 
+})
+
+const maxHourlyCount = computed(() => { 
+  if (sortedHourlyStats.value.length === 0) return 1
+  return Math.max(...sortedHourlyStats.value.map(item => item[1])) 
+})
+
 const formatNumber = (val) => new Intl.NumberFormat('en-US').format(val || 0)
 </script>
 
 <style scoped>
-/* 共用樣式 */
 .query-section { padding: 10px; }
 h2 { font-size: 18px; color: #333; margin-bottom: 20px; font-weight: 600; }
 
@@ -105,12 +134,37 @@ h2 { font-size: 18px; color: #333; margin-bottom: 20px; font-weight: 600; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
 .stat-card { background: white; border: 1px solid #eee; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
-/* 統一字體 */
 .stat-label { font-size: 14px; color: #555; font-weight: bold; margin-bottom: 8px; }
 .stat-number { font-size: 28px; color: #557c55; font-weight: 500; line-height: 1.2; }
 
-/* 金額特別色 */
-.cost-card { background: #fafbf9; }
+/* 🔥 金額卡片樣式 */
+.cost-card { background: #fafbf9; position: relative; }
+.card-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+/* 🔥 幣別選擇器 */
+.currency-selector {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #d97706;
+  border-radius: 4px;
+  background: white;
+  color: #d97706;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.currency-selector:hover {
+  background: #fffbeb;
+  border-color: #b45309;
+}
+
+.currency-selector:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+}
+
 .cost-text { color: #d97706; }
 .cost-text small { font-size: 14px; color: #b0a496; margin-right: 2px; }
 

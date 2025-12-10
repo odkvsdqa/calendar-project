@@ -17,6 +17,10 @@
         <button @click="currentTab = 'UserSchedule'" :class="{ active: currentTab === 'UserSchedule' }">
           {{ $t('admin.tabs.userSchedule') }}
         </button>
+        <!-- 🔥 新增：匯率資訊 Tab -->
+        <button @click="currentTab = 'ExchangeRateInfo'" :class="{ active: currentTab === 'ExchangeRateInfo' }">
+          💱 匯率資訊
+        </button>
       </div>
 
       <!-- 動態組件區 -->
@@ -35,12 +39,15 @@ import DateQuery from './dashboard/DateQuery.vue'
 import MonthlyStats from './dashboard/MonthlyStats.vue'
 import TimeRangeStats from './dashboard/TimeRangeStats.vue'
 import UserSchedule from './dashboard/UserSchedule.vue'
+import ExchangeRateInfo from './dashboard/ExchangeRateInfo.vue' // 🔥 新增
+
 
 const tabs = {
   DateQuery,
   MonthlyStats,
   TimeRangeStats,
-  UserSchedule
+  UserSchedule,
+   ExchangeRateInfo // 🔥 新增
 }
 
 // 🔥 修改：加入 localStorage 記憶功能

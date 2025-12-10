@@ -22,9 +22,6 @@ public class UserPreference {
     @Column(name = "theme", length = 20)
     private String theme = "light"; // 預設淺色模式
 
-    // 🔥 v1.1 新增：時區設定
-    @Column(name = "timezone", length = 50)
-    private String timezone = "Asia/Taipei"; // 預設台北時間
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -35,7 +32,6 @@ public class UserPreference {
         this.user = user;
         this.language = language;
         this.theme = "light";
-        this.timezone = "Asia/Taipei";
     }
     
     @PrePersist
@@ -57,8 +53,6 @@ public class UserPreference {
     public String getTheme() { return theme; }
     public void setTheme(String theme) { this.theme = theme; }
     
-    public String getTimezone() { return timezone; }
-    public void setTimezone(String timezone) { this.timezone = timezone; }
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }

@@ -5,6 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;             // 🔥 新增這行
+import org.slf4j.LoggerFactory;      // 🔥 新增這行
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +19,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+
 public class JwtAuthFilter extends OncePerRequestFilter {
     
+	// 🔥 新增這行：手動宣告 Logger
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
+	
     @Autowired
     private JwtUtil jwtUtil;
     
@@ -33,21 +39,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         
         try {
-            // 從請求頭中獲取 JWT Token
             String jwt = getJwtFromRequest(request);
             
             if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt)) {
-                // 從 Token 中獲取用戶名
                 String username = jwtUtil.getUsernameFromToken(jwt);
-                
-                // 載入用戶詳情
                 UserDetails userDetails = userService.loadUserByUsername(username);
                 
-                // 創建認證對象
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
-                                null,
+                                null, // 憑證 (密碼) 通常設為 null
                                 userDetails.getAuthorities()
                         );
                 
@@ -55,26 +56,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
                 
-                // 設置到 Security Context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            System.err.println("無法設置用戶認證: " + e.getMessage());
+            // 這裡通常是 "找不到用戶" 或其他驗證過程的錯誤
+            // log.error 只紀錄嚴重錯誤，驗證失敗通常不算嚴重錯誤
+            log.error("無法設置用戶認證: {}", e.getMessage());
         }
         
         filterChain.doFilter(request, response);
     }
     
-    /**
-     * 從請求頭中提取 JWT Token
-     */
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
-        
         return null;
     }
 }

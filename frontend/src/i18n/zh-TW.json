@@ -1,4 +1,13 @@
 {
+  "zh-TW": {
+    "admin": {
+      "stats": {
+        "totalBudget": "本月總預算",
+        "estimatedCost": "預計總花費",
+        "currencyNote": "💡 提示：切換幣別可自動換算金額"
+      }
+    }
+  },
   "common": {
     "confirm": "確定",
     "cancel": "取消",
@@ -10,7 +19,10 @@
     "year": "年份",
     "month": "月份",
     "person": "人",
-    "unit": "單位"
+    "unit": "單位",
+    "update": "更新",
+    "retry": "重試",
+    "manualUpdate": "手動更新"
   },
   "errors": {
     "default": "操作失敗",
@@ -40,7 +52,8 @@
   },
   "venueNames": {
     "tmc": "臺北流行音樂中心",
-    "taipei-dome": "臺北大巨蛋"
+    "taipei-dome": "臺北大巨蛋",
+    "makuhari-messe": "幕張展覽館 (日本)" 
   },
   "venue": {
     "subscribeConfirmTitle": "訂閱確認",
@@ -117,6 +130,7 @@
     "editTitle": "編輯事件",
     "title": "標題",
     "cost": "預計花費",
+    "currency": "幣別",
     "description": "描述",
     "start": "開始",
     "end": "結束",
@@ -127,7 +141,15 @@
       "desc": "備註..."
     },
     "deleteConfirmTitle": "確認刪除",
-    "deleteConfirmText": "確定要刪除此事件嗎？"
+    "deleteConfirmText": "確定要刪除此事件嗎？",
+    "currencies": {
+      "TWD": "新台幣 (NT$)",
+      "USD": "美元 ($)",
+      "JPY": "日圓 (¥)",
+      "EUR": "歐元 (€)",
+      "CNY": "人民幣 (¥)",
+      "KRW": "韓元 (₩)"
+    }
   },
   "admin": {
     "dashboard": "管理員儀表板",
@@ -135,9 +157,10 @@
       "dateQuery": "按日期查詢",
       "monthlyStats": "按月份統計",
       "timeRange": "按時間範圍",
-      "userSchedule": "用戶排程"
+      "userSchedule": "用戶排程",
+      "exchangeRate": "匯率資訊"
     },
-    "stats": { 
+    "stats": {
       "activeUsers": "活躍用戶數",
       "totalEvents": "總事件數",
       "totalBudget": "本月總預算",
@@ -173,12 +196,35 @@
         "empty": "請選擇一位用戶以查看排程",
         "scheduleOf": "的排程日期",
         "dateList": "排程日期列表:"
+      },
+      "exchangeRate": {
+        "title": "匯率資訊",
+        "lastUpdated": "最後更新",
+        "updating": "更新中...",
+        "updateSuccess": "✅ 匯率更新成功！",
+        "updateFailed": "❌ 匯率更新失敗，請稍後再試",
+        "loadFailed": "❌ 無法載入匯率資訊",
+        "loading": "載入匯率資訊...",
+        "baseCurrency": "基準貨幣",
+        "dataSource": "資料來源",
+        "autoUpdate": "匯率每天凌晨 2:00 自動更新"
       }
     },
     "errors": {
       "selectDate": "請選擇日期",
       "queryFailed": "查詢失敗，請稍後再試",
       "selectTimeRange": "請選擇開始和結束時間"
+    },
+    "exchangeRate": {
+      "status": {
+        "fresh": "最新",
+        "stale": "已過期"
+      },
+      "info": {
+        "autoUpdate": "💡 匯率每天凌晨 2:00 自動更新",
+        "baseCurrency": "📊 基準貨幣：新台幣 (TWD)",
+        "dataSource": "🌐 資料來源：ExchangeRate-API"
+      }
     }
   }
 }

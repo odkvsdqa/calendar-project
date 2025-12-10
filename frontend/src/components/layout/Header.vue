@@ -65,7 +65,7 @@
           </div>
           <div class="drawer-divider mobile-only-nav"></div>
 
-          <!-- 🔥 2. 場館訂閱 -->
+          <!-- 2. 場館訂閱 -->
           <div class="accordion-item">
             <div class="accordion-header" @click="toggleVenues">
               <span class="accordion-title">🎫 {{ $t('header.venues') }}</span>
@@ -94,7 +94,7 @@
 
           <div class="drawer-divider"></div>
 
-          <!-- 🔥 3. 主題切換（新增）-->
+          <!-- 3. 主題切換 -->
           <div class="accordion-item">
             <div class="accordion-header" @click="toggleTheme">
               <span class="accordion-title">🎨 {{ $t('header.theme') }}</span>
@@ -120,31 +120,7 @@
 
           <div class="drawer-divider"></div>
 
-          <!-- 🔥 4. 時區選擇（新增）-->
-          <div class="accordion-item">
-            <div class="accordion-header" @click="toggleTimezone">
-              <span class="accordion-title">🌍 {{ $t('header.timezone') }}</span>
-              <span class="arrow" :class="{ rotated: isTimezoneExpanded }">▼</span>
-            </div>
-            <div v-show="isTimezoneExpanded" class="accordion-body">
-              <div class="lang-options timezone-list">
-                <div 
-                  v-for="tz in supportedTimezones" 
-                  :key="tz" 
-                  class="lang-item" 
-                  :class="{ active: currentTimezone === tz }" 
-                  @click="changeTimezone(tz)"
-                >
-                  <span>{{ $t('timezones.' + tz.replace(/\//g, '_')) }}</span>
-                  <span v-if="currentTimezone === tz" class="check">✓</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="drawer-divider"></div>
-
-          <!-- 5. 語言設定 -->
+          <!-- 4. 語言設定 -->
           <div class="accordion-item">
             <div class="accordion-header" @click="toggleLang">
               <span class="accordion-title">🌐 {{ $t('header.language') }}</span>
@@ -170,7 +146,7 @@
 
         </div>
         <div class="drawer-footer">
-          <span class="version-text">SKJL Calendar v1.1</span>
+          <span class="version-text">SKJL Calendar v1.2</span>
         </div>
       </div>
     </Teleport>
@@ -219,7 +195,7 @@ import SkjlLogo from '../SkjlLogo.vue'
 import BaseModal from '../../components/common/BaseModal.vue'
 import { preferenceApi } from '../../services/preferenceApi'
 import { useVenues } from '../../composables/useVenues'
-import { useTheme } from '../../composables/useTheme' // 🔥 新增
+import { useTheme } from '../../composables/useTheme'
 
 const props = defineProps({
   username: { type: String, required: true },
@@ -230,14 +206,9 @@ const emit = defineEmits(['logout'])
 const { t, locale } = useI18n()
 const isAdmin = computed(() => props.userRole === 'ADMIN')
 
-// 🔥 主題管理
-const { currentTheme, setTheme, syncThemeFromServer } = useTheme()
+// 主題管理
+const { currentTheme, setTheme } = useTheme()
 const isThemeExpanded = ref(false)
-
-// 🔥 時區管理
-const currentTimezone = ref('Asia/Taipei')
-const supportedTimezones = ref([])
-const isTimezoneExpanded = ref(true) // 🔥 預設展開
 
 // 狀態控制
 const showLogoutModal = ref(false)
@@ -277,8 +248,7 @@ const venueModalText = computed(() => {
 const toggleNav = () => { isNavExpanded.value = !isNavExpanded.value }
 const toggleLang = () => { isLangExpanded.value = !isLangExpanded.value }
 const toggleVenues = () => { isVenuesExpanded.value = !isVenuesExpanded.value }
-const toggleTheme = () => { isThemeExpanded.value = !isThemeExpanded.value } // 🔥
-const toggleTimezone = () => { isTimezoneExpanded.value = !isTimezoneExpanded.value } // 🔥
+const toggleTheme = () => { isThemeExpanded.value = !isThemeExpanded.value }
 
 // 場館訂閱處理
 const handleVenueClick = (venue) => {
@@ -300,25 +270,9 @@ const confirmSubscribeVenue = async () => {
   showVenueConfirmModal.value = false
 }
 
-// 🔥 主題切換
+// 主題切換
 const changeTheme = async (theme) => {
   await setTheme(theme)
-}
-
-// 🔥 時區切換
-const changeTimezone = async (tz) => {
-  currentTimezone.value = tz
-  
-  try {
-    const currentPrefs = await preferenceApi.getPreferences()
-    await preferenceApi.updatePreferences({
-      ...currentPrefs.data,
-      timezone: tz
-    })
-    console.log('✅ 時區已同步至後端:', tz)
-  } catch (error) {
-    console.warn('⚠️ 時區同步後端失敗:', error)
-  }
 }
 
 // 語言切換（帶淡入淡出動畫）
@@ -353,52 +307,8 @@ const confirmLogout = () => {
 
 // 初始化
 onMounted(async () => {
-  // 1. 載入場館列表
+  // 載入場館列表
   fetchVenueList()
-  
-  // 2. 載入時區清單與當前設定
-  const token = localStorage.getItem('auth-token')
-  
-  // 如果沒有 Token，使用預設值
-  if (!token) {
-    console.log('⏭️ 未登入，使用預設時區設定')
-    supportedTimezones.value = [
-      'Asia/Taipei', 'Asia/Tokyo', 'Asia/Seoul', 'Asia/Hong_Kong',
-      'Asia/Singapore', 'America/New_York', 'Europe/London', 
-      'Europe/Paris', 'Australia/Sydney', 'America/Los_Angeles'
-    ]
-    currentTimezone.value = 'Asia/Taipei'
-    return
-  }
-  
-  try {
-    const [timezonesRes, prefsRes] = await Promise.all([
-      preferenceApi.getSupportedTimezones(),
-      preferenceApi.getPreferences()
-    ])
-    
-    supportedTimezones.value = timezonesRes.data
-    currentTimezone.value = prefsRes.data.timezone
-    
-    console.log('✅ 時區清單已載入:', supportedTimezones.value.length, '個')
-    console.log('✅ 當前時區:', currentTimezone.value)
-    
-  } catch (error) {
-    // 403 錯誤靜默處理
-    if (error.response?.status === 403) {
-      console.warn('⚠️ Token 無效，使用預設時區設定')
-    } else {
-      console.error('❌ 載入時區設定失敗:', error.message)
-    }
-    
-    // Fallback: 使用預設值
-    supportedTimezones.value = [
-      'Asia/Taipei', 'Asia/Tokyo', 'Asia/Seoul', 'Asia/Hong_Kong',
-      'Asia/Singapore', 'America/New_York', 'Europe/London', 
-      'Europe/Paris', 'Australia/Sydney', 'America/Los_Angeles'
-    ]
-    currentTimezone.value = 'Asia/Taipei'
-  }
 })
 </script>
 
@@ -445,7 +355,6 @@ onMounted(async () => {
 .lang-item:hover { background: var(--bg-hover); }
 .lang-item.active { background: #e8f5e9; color: #557c55; font-weight: 500; }
 .check { font-weight: bold; }
-.timezone-list { max-height: 240px; overflow-y: auto; }
 .drawer-nav-links { display: flex; flex-direction: column; gap: 5px; }
 .drawer-link { text-decoration: none; color: var(--text-secondary); padding: 10px; border-radius: 4px; font-size: 14px; transition: background 0.2s; }
 .drawer-link:hover { background: var(--bg-hover); color: #557c55; }

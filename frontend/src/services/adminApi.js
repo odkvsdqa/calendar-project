@@ -50,7 +50,16 @@ export const adminApi = {
    */
   getUserScheduleDates(userId) {
     return api.get(`/admin/user-schedule-dates/${userId}`)
+  },
+
+  getExchangeRates() {
+    return api.get('/admin/exchange-rates')
+  },
+
+  updateExchangeRates() {
+    return api.post('/admin/update-exchange-rates')
   }
+
 }
 
 export default adminApi

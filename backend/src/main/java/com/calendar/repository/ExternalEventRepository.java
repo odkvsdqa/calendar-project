@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying; // 1. 引入這個
 import org.springframework.data.jpa.repository.Query;     // 2. 引入這個
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ public interface ExternalEventRepository extends JpaRepository<ExternalEvent, St
 
  // 🔥 修改這裡：改用 @Query 直接下 SQL 指令，避開 JPA 狀態檢查
     @Modifying
+    @Transactional
     @Query("DELETE FROM ExternalEvent e WHERE e.venueId = :venueId")
     void deleteByVenueId(String venueId);
 }

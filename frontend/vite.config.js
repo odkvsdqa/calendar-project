@@ -7,7 +7,9 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-
+ 
+    }
+    
     // ⚠️ 加上這個（新增）
     // allowedHosts: [
     //   ".loca.lt",
@@ -20,5 +22,4 @@ export default defineConfig({
     // hmr: {
     //   clientPort: 443, // 強制瀏覽器透過 HTTPS (443) 進行熱更新連線
     // },
-  },
-});
+  },);
