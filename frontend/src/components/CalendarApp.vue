@@ -235,6 +235,7 @@ const openEventModal = (date) => {
     color: "#7c8db5",
     estimatedCost: null,
     currency: "TWD", // 🔥 確保新事件有預設幣別
+    categoryId: null, // 🔥 補上這行：初始化類型
   };
 
   if (date) {
@@ -303,7 +304,9 @@ const editEvent = (event) => {
     endTime: formatDateTimeLocal(new Date(event.endTime)),
     color: event.color || "#7c8db5",
     estimatedCost: event.estimatedCost || null,
-    currency: event.currency || "TWD", // 🔥 如果舊資料沒有，給預設值
+    currency: event.currency || "TWD", // 🔥 如果舊資料沒有，給預設值\// 後端 DTO 回傳時，欄位可能是 categoryId (String) 或 category (Object)
+    // 我們優先取 ID，這樣 Modal 的下拉選單才知道要選哪一個
+    categoryId: event.categoryId || event.category?.id || null,
   };
 };
 

@@ -1,6 +1,6 @@
 <template>
   <div class="month-view">
-    <!-- 🔥 新增：滾動容器，包住 Header 和 Grid -->
+    <!-- 滾動容器 -->
     <div class="month-scroll-wrapper">
       <!-- 星期標題 -->
       <div class="weekdays-header">
@@ -18,7 +18,6 @@
           :class="{
             'other-month': dayData.isOtherMonth,
             today: dayData.isToday,
-            /* 只要有事件就變色 */
             'has-event':
               !dayData.isOtherMonth && getEventsForDay(dayData.date).length > 0,
           }"
@@ -34,12 +33,11 @@
           </div>
 
           <div class="events-wrapper">
-            <!-- 🔥 修改重點：使用 getVisibleTracks 來渲染，包含 null (空氣) -->
             <template
               v-for="(event, idx) in getVisibleTracks(dayData.date)"
               :key="idx"
             >
-              <!-- 情況 A: 這個軌道有事件 -> 渲染事件條 -->
+              <!-- 情況 A: 這個軌道有事件 -->
               <div
                 v-if="event"
                 class="event-bar"
@@ -47,6 +45,15 @@
                 @click.stop="emit('edit-event', event)"
                 :title="getEventTitle(event)"
               >
+                <!-- 🔥 修改 1：圖標顯示邏輯同步標題邏輯 -->
+                <!-- 只有在「活動開始日」或「週日」才顯示圖標，避免每一格都出現 -->
+                <span 
+                  v-if="event.category && shouldShowTitle(event, dayData.date)" 
+                  class="event-category-icon"
+                >
+                  {{ event.category.icon }}
+                </span>
+                
                 <span
                   v-if="shouldShowTitle(event, dayData.date)"
                   class="event-title"
@@ -55,26 +62,28 @@
                 </span>
               </div>
 
-              <!-- 情況 B: 這個軌道是空的 -> 渲染隱形佔位符，防止下方事件跳上來 -->
+              <!-- 情況 B: 隱形佔位符 -->
               <div v-else class="empty-event"></div>
             </template>
           </div>
 
-          <!-- More 按鈕 (判斷總數是否大於 4) -->
+          <!-- More 按鈕 -->
           <div
             v-if="getEventsForDay(dayData.date).length > 4"
             class="more-events"
             @click.stop="openListModal(dayData.date)"
           >
-            {{ $t('calendar.moreEvents', { count: getEventsForDay(dayData.date).length - 4 }) }}
+            {{
+              $t("calendar.moreEvents", {
+                count: getEventsForDay(dayData.date).length - 4,
+              })
+            }}
           </div>
         </div>
       </div>
-      <!-- Grid 結束 -->
     </div>
-    <!-- 滾動容器結束 -->
-     
-    <!-- 列表彈窗 -->
+
+    <!-- 列表彈窗 (維持不變) -->
     <div
       v-if="showListModal"
       class="list-modal-overlay"
@@ -107,42 +116,36 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, watch, toRef, computed } from "vue";
-
 import { useCostAnalysis } from "../composables/useCostAnalysis";
-// 如果你的 utils 路徑不同，請確認這行
 import { formatDateTimeLocal } from "../utils/dateFormatter";
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n";
 
-
-const { t } = useI18n()
+const { t } = useI18n();
 const weekdays = computed(() => [
-  t('calendar.weekdays.sun'),
-  t('calendar.weekdays.mon'),
-  t('calendar.weekdays.tue'),
-  t('calendar.weekdays.wed'),
-  t('calendar.weekdays.thu'),
-  t('calendar.weekdays.fri'),
-  t('calendar.weekdays.sat')
-])
+  t("calendar.weekdays.sun"),
+  t("calendar.weekdays.mon"),
+  t("calendar.weekdays.tue"),
+  t("calendar.weekdays.wed"),
+  t("calendar.weekdays.thu"),
+  t("calendar.weekdays.fri"),
+  t("calendar.weekdays.sat"),
+]);
 const props = defineProps({
   currentDate: { type: Date, required: true },
   events: { type: Array, default: () => [] },
 });
 const emit = defineEmits(["add-event", "edit-event", "change-view"]);
 
-// 🔥 使用 Composable 處理金錢邏輯
 const eventsRef = toRef(props, "events");
 const { getCostLevel } = useCostAnalysis(eventsRef);
 
-// --- 以下維持你原有的日曆邏輯 ---
 const calendarDays = ref([]);
 const eventTracks = ref(new Map());
 
 const renderCalendar = () => {
-  /* ... 保留你修好的邏輯 ... */
-  // 簡化顯示，請貼上你原本的 renderCalendar
   const year = props.currentDate.getFullYear();
   const month = props.currentDate.getMonth();
   const firstDay = new Date(year, month, 1);
@@ -178,7 +181,6 @@ const renderCalendar = () => {
 };
 
 const getEventsForDay = (date) => {
-  /* ... 保留你修好的邏輯 ... */
   if (!Array.isArray(props.events)) return [];
   const targetDay = new Date(
     date.getFullYear(),
@@ -210,7 +212,6 @@ const getEventsForDay = (date) => {
 };
 
 const assignEventTracks = () => {
-  /* ... 保留你修好的邏輯 ... */
   eventTracks.value.clear();
   if (!Array.isArray(props.events) || props.events.length === 0) return;
   const sortedEvents = [...props.events].sort(
@@ -242,7 +243,6 @@ const assignEventTracks = () => {
   });
 };
 
-// 🔥 處理列表彈窗邏輯
 const showListModal = ref(false);
 const listEvents = ref([]);
 const listDate = ref(null);
@@ -256,8 +256,7 @@ const listDateTitle = computed(() => {
 
 const openListModal = (date) => {
   listDate.value = date;
-  // 這裡取得當天"所有"事件
-  listEvents.value = getEventsForDay(date); // 這裡會自動排序，因為 getEventsForDay 裡有 sort
+  listEvents.value = getEventsForDay(date);
   showListModal.value = true;
 };
 
@@ -267,7 +266,7 @@ const closeListModal = () => {
 
 const handleListEventClick = (event) => {
   closeListModal();
-  emit("edit-event", event); // 打開編輯視窗
+  emit("edit-event", event);
 };
 
 const formatTime = (isoString) => {
@@ -278,10 +277,7 @@ const formatTime = (isoString) => {
 };
 
 const getEventStyle = (event, date) => {
-  // 1. 軌道與位置計算 (保留你的邏輯)
   const trackIndex = eventTracks.value.get(event.id) || 0;
-
-  // 2. 日期計算
   const startDate = new Date(event.startTime);
   const endDate = new Date(event.endTime);
   const startDay = new Date(
@@ -303,158 +299,129 @@ const getEventStyle = (event, date) => {
   const isStart = currentDay.getTime() === startDay.getTime();
   const isEnd = currentDay.getTime() === endDay.getTime();
 
-  // 3. 樣式設定
   const style = {
-    // --- 定位 (絕對定位，這是你測試出不會跑版的關鍵) ---
-    // 🔥 修改 2：改為 relative，讓它佔據真實空間
     position: "relative",
     zIndex: 10 - trackIndex,
     left: "0",
     right: "0",
     width: "100%",
     boxSizing: "border-box",
-
-    // --- 視覺 (Google 風格：實心、白字、清晰) ---
     backgroundColor: event.color || "#557c55",
     color: "#ffffff",
-
-    // 🔥 修正你的 typo: ontSize -> fontSize
-    fontSize: "11px", // 稍微大一點點 (10px -> 11px) 比較清楚
-    fontWeight: "500", // 稍微加粗，提升白字可讀性
-    textShadow: "0 0 1px rgba(0,0,0,0.2)", // 微微陰影防糊
-
+    fontSize: "11px",
+    fontWeight: "500",
+    textShadow: "0 0 1px rgba(0,0,0,0.2)",
     lineHeight: "18px",
     height: "18px",
     padding: "0 6px",
-
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    boxShadow: "none", // 扁平化
-
-    // --- 預設邊距 (稍後覆蓋) ---
+    boxShadow: "none",
     marginBottom: "1px",
     marginLeft: "0px",
     marginRight: "0px",
     borderRadius: "0px",
   };
 
-  // 4. 邊距與圓角邏輯 (保留你測試成功的數值)
   if (isStart && isEnd) {
     style.borderRadius = "3px";
-    style.marginLeft = "1px"; // 左右各留 1px，視覺置中且不黏邊
+    style.marginLeft = "1px";
     style.marginRight = "1px";
   } else if (isStart) {
     style.borderTopLeftRadius = "3px";
     style.borderBottomLeftRadius = "3px";
-    style.marginLeft = "1px"; // 起始點留縫隙
-    style.marginRight = "0px"; // 連接處貼齊
+    style.marginLeft = "1px";
+    style.marginRight = "0px";
   } else if (isEnd) {
     style.borderTopRightRadius = "3px";
     style.borderBottomRightRadius = "3px";
-    style.marginLeft = "0px"; // 連接處貼齊
-    style.marginRight = "1px"; // 結束點留縫隙
+    style.marginLeft = "0px";
+    style.marginRight = "1px";
   }
-  // 中間段維持 margin 0
 
   return style;
 };
+
 const getEventTitle = (event) => {
   return event.description
     ? event.title + "\n" + event.description
     : event.title;
 };
+
+// 🔥 修改 2：更新標題顯示邏輯
+// 當「活動開始日」或「該格是週日(每週第一天)」時，顯示標題
 const shouldShowTitle = (event, date) => {
+  // 1. 檢查是否為開始日
   const s = new Date(event.startTime);
-  return (
-    date.getTime() ===
-    new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime()
-  );
+  const isStartDate = date.getTime() ===
+    new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime();
+
+  // 2. 檢查是否為週日 (每週的開始)
+  const isSunday = date.getDay() === 0;
+
+  return isStartDate || isSunday;
 };
-// 🔥 新增：產生固定 4 個軌道的陣列 (含空位)
+
 const getVisibleTracks = (date) => {
-  // 1. 取得當天所有事件
   const dayEvents = getEventsForDay(date);
-
-  // 2. 建立一個固定 4 格的空陣列 [null, null, null, null]
   const slots = Array(4).fill(null);
-
-  // 3. 把事件填入對應的軌道 (Track)
   dayEvents.forEach((event) => {
     const track = eventTracks.value.get(event.id);
-
-    // 只顯示軌道 0~3 的事件
     if (track !== undefined && track < 4) {
       slots[track] = event;
     }
   });
-
   return slots;
 };
+
 renderCalendar();
 watch(() => props.currentDate, renderCalendar);
 watch(() => props.events, renderCalendar, { deep: true });
 </script>
 
 <style scoped>
-/* 繼承你原有的 Style + 熱力圖樣式 */
+/* 維持原有樣式 */
 .month-view {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;  /* 防止最外層出現雙重卷軸 */
+  overflow: hidden;
   padding: 0;
   height: 100%;
   background: #fff;
 }
-/* 🔥 2. 新增：內部滾動容器 */
-/* 滾動容器與標題：移除 800px 限制，改回 100% */
 .month-scroll-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* 只保留垂直捲動 */
-  overflow-x: hidden; /* 🔥 禁止水平捲動，強制塞進畫面 */
-  min-width: 100%;    /* 🔥 改回 100% */
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 100%;
 }
-
-/* 讓 Header 和 Grid 也跟著 RWD 縮放 */
-.weekdays-header, .calendar-grid {
-  min-width: 100%;    /* 🔥 改回 100% */
-  width: 100%;        /* 確保佔滿 */
+.weekdays-header,
+.calendar-grid {
+  min-width: 100%;
+  width: 100%;
 }
-
 .weekdays-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   background: #fafbf9;
-
-  /* 下底線 */
   border-bottom: 1px solid #d1d5db;
-
-  /* 左右邊框補齊 */
   border-left: 1px solid #d1d5db;
   border-right: 1px solid #d1d5db;
   border-top: 1px solid #d1d5db;
-
-  /* 🔥 微調：因為下面有 gap: 1px，這裡其實很難完美對齊每一條直線
-     但在視覺上，只要外框對齊，中間的線稍微錯開 1px 通常是可以接受的。
-     如果要完美對齊，Header 也要用 gap: 1px */
   gap: 1px;
-  background-color: #d1d5db; /* 讓 Header 的縫隙也變灰 */
-
-  /* 🔥 防止 Header 捲動時黏在上面不動導致錯位，讓它跟著 Grid 一起捲 */
-  flex-shrink: 0; 
+  background-color: #d1d5db;
+  flex-shrink: 0;
+  min-width: 800px;
 }
-
-/* 讓 Header 和 Grid 繼承這個最小寬度 */
-.weekdays-header, .calendar-grid {
-  /* 🔥 關鍵：強制最小寬度，確保不會被壓扁 */
-  min-width: 800px; 
+.calendar-grid {
+  min-width: 800px;
 }
-
 .weekday-cell {
-  background-color: #fafbf9; /* 確保 Header 格子有顏色 */
+  background-color: #fafbf9;
   text-align: center;
   padding: 12px 0;
   font-weight: 500;
@@ -469,8 +436,8 @@ watch(() => props.events, renderCalendar, { deep: true });
   grid-auto-rows: 1fr;
   flex: 1;
   gap: 1px;
-  background-color: #d1d5db; /* 格線顏色 (統一用這個) */
-  border: 1px solid #d1d5db; /* 外框 */
+  background-color: #d1d5db;
+  border: 1px solid #d1d5db;
 }
 .clickable-num {
   cursor: pointer;
@@ -485,24 +452,16 @@ watch(() => props.events, renderCalendar, { deep: true });
 .day:nth-child(7n + 1) {
   border-left: 1px solid #f5f5f5;
 }
-/* 2. 修改 .day */
-/* 3. 調整 Day 容器：給予足夠的最小高度 */
 .day {
   background-color: white;
   padding: 4px 0 0 0;
   cursor: pointer;
   position: relative;
   transition: background 0.2s;
-
-  /* 🔥 關鍵：增加最小高度 */
-  /* 計算公式：Header(28) + 4個事件(19*4=76) + Footer(20) = 124px */
-  /* 設定 125px 或更大，確保 4 個事件不會被切掉 */
   min-height: 130px;
-
   height: auto;
   box-sizing: border-box;
   width: 100%;
-
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -512,53 +471,38 @@ watch(() => props.events, renderCalendar, { deep: true });
 .day:hover {
   background: #f5f7f5;
 }
-/* Day Header */
-/* Day Header: 強制固定高度，確保每一格的起始點完全一致 */
 .day-header {
-  height: 28px; /* 🔥 關鍵：鎖死高度 (比圓圈 22px 大一點即可) */
-  min-height: 28px; /* 雙重保險 */
-
+  height: 28px;
+  min-height: 28px;
   padding: 0 8px;
   margin-bottom: 2px;
-
   display: flex;
   justify-content: space-between;
-  align-items: center; /* 讓數字在 28px 內垂直置中 */
+  align-items: center;
   flex-shrink: 0;
 }
-
-/* Day Number: 重置行高，避免文字撐開 */
 .day-number {
   font-size: 12px;
   color: #444;
   position: relative;
   z-index: 1;
   padding-left: 0;
-
-  /* 🔥 關鍵：移除 display: inline-block 或是重置 line-height */
-  /* 建議直接設為 block 或 flex 讓它乖乖待在 header 裡 */
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-/* 🔥 移除舊的 forest-level-1, 2, 3 */
-
 .day.has-event {
-  /* 🔥 調整後：使用主色 (#557c55) 但透明度改為 0.12 (12%) */
-  background-color: rgba(85, 124, 85, 0.08);
+  background-color: #f2f7f2;
 }
-
-/* Hover 時稍微再深一點點，增加互動感 */
 .day.has-event:hover {
-  background-color: rgba(85, 124, 85, 0.15);
+  background-color: #e6efe6;
 }
 .day.other-month {
-  background: #fafafa;
+  background: #F5F5F5;
 }
 .day.other-month .day-number {
-  color: #ccc;
+  color: #d1d5db;
 }
 .day.today .clickable-num:hover {
   background: #444;
@@ -566,122 +510,80 @@ watch(() => props.events, renderCalendar, { deep: true });
 .day.today .day-number {
   background: #333;
   color: white;
-  width: 22px; /* 22px < 28px，所以不會撐開 header */
+  width: 22px;
   height: 22px;
   border-radius: 50%;
   font-weight: 500;
   text-decoration: underline;
-  /* 確保沒有 margin 干擾 */
   margin: 0;
 }
-
 .events-wrapper {
   position: relative;
   flex: 1;
   width: 100%;
-
-  /* 🔥 Flex 排列 */
   display: flex;
   flex-direction: column;
-
-  /* 確保從頂部開始排 */
   justify-content: flex-start;
-
   overflow: hidden;
   pointer-events: none;
   margin-top: 0;
-
-  /* 稍微留點上方緩衝 */
   padding-top: 1px;
   padding-bottom: 2px;
-
   flex-shrink: 0;
 }
-
-/* 4. 確保事件條也是 Block 元素 (雖然上面 JS 有改，但 CSS 雙重保險) */
 .event-bar {
   display: block;
   pointer-events: auto;
-  flex-shrink: 0; /* 禁止被壓縮 */
+  flex-shrink: 0;
 }
 .event-bar:hover {
   opacity: 0.85;
   transform: translateY(-1px);
 }
-
-/* 2. 調整空白佔位符：這是關鍵！ */
-/* 因為我們改用 Flex 堆疊，空的軌道必須要有「實體高度」才能把下面的東西擠下去 */
 .empty-event {
-  height: 18px; /* 跟事件條一樣高 */
-  margin-bottom: 1px; /* 跟事件條一樣的間距 */
+  height: 18px;
+  margin-bottom: 1px;
   width: 100%;
-  visibility: hidden; /* 看不見，但佔空間 */
-  display: block; /* 確保它佔據一行 */
+  visibility: hidden;
+  display: block;
 }
-
-/* src/components/MonthView.vue */
-
 .more-events {
-  /* 定位 */
   position: relative;
-  margin-top: auto; /* 自動推到最底 */
-
-  /* 尺寸 */
+  margin-top: auto;
   height: 18px;
   line-height: 18px;
-
-  /* 🔥 關鍵：防止按鈕被壓縮 */
-  /* 告訴瀏覽器：就算空間不夠，也不准壓縮這個按鈕的高度 */
   flex-shrink: 0;
-
-  /* 外觀 */
   text-align: left;
   font-size: 10px;
   color: #557c55;
   padding-left: 6px;
   font-weight: 500;
-
-  /* 背景與邊框：移除之前的 border hack，回歸單純 */
   background: inherit;
   box-shadow: none;
   border-radius: 0;
-
-  /* 其他 */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
   z-index: 30;
 }
-
 .more-events:hover {
   background-color: rgba(85, 124, 85, 0.2) !important;
   color: #333;
 }
-/* 🔥 列表彈窗樣式 */
 .list-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  /* 改用 viewport 單位，確保蓋住全螢幕 */
   width: 100vw;
   height: 100vh;
-
-  /* 🔥 修正 1：移除 backdrop-filter (這是變全黑的元兇) */
-  /* backdrop-filter: blur(2px); */
-
-  /* 🔥 修正 2：單純的半透明黑 (0.3 ~ 0.5 即可) */
   background-color: rgba(0, 0, 0, 0.3);
-
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* 確保彈窗不會繼承奇怪的文字設定 */
   text-align: left;
 }
-
 .list-modal {
   background: white;
   width: 300px;
@@ -752,84 +654,58 @@ watch(() => props.events, renderCalendar, { deep: true });
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* src/components/MonthView.vue */
-
-/* 🔥 手機版專屬強力排版 */
 @media (max-width: 768px) {
-  /* 1. 強制容器不准超過螢幕寬度 */
   .month-scroll-wrapper {
     width: 100% !important;
-    min-width: 0 !important; /* 覆蓋之前的設定 */
-    overflow-x: hidden !important; /* 禁止水平捲動 */
+    min-width: 0 !important;
+    overflow-x: hidden !important;
   }
-
-  /* 2. Grid 的魔法設定 */
-  .weekdays-header, 
+  .weekdays-header,
   .calendar-grid {
     width: 100% !important;
     min-width: 0 !important;
-    /* 🔥 關鍵：原本是 repeat(7, 1fr)，現在改成 minmax(0, 1fr) */
-    /* 這會強制格子忽視內容長度，乖乖平分螢幕寬度 */
     grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
   }
-
-  /* 3. 格子內容設定：溢出隱藏 */
   .weekday-cell {
-    font-size: 10px; /* 星期字體縮小 */
+    font-size: 10px;
     padding: 5px 0;
-    overflow: hidden; /* 防止文字撐開 */
+    overflow: hidden;
   }
-
   .day {
-    min-height: 80px; /* 手機版格子高度 */
-    overflow: hidden; /* 🔥 防止事件條撐開格子 */
+    min-height: 80px;
+    overflow: hidden;
   }
-
   .day-header {
     padding: 0 2px;
   }
-  
   .day-number {
     font-size: 11px;
     width: 20px;
     height: 20px;
     line-height: 20px;
   }
-
-  /* 4. 事件條極限壓縮 */
   .event-bar {
     padding: 0 1px;
-    font-size: 9px; /* 字體極小，仿 Google 日曆 */
+    font-size: 9px;
     line-height: 16px;
     height: 16px;
     margin-bottom: 1px;
-    
-    /* 確保文字太長時顯示 ... */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  /* 5. 底部按鈕 */
   .more-events {
     font-size: 9px;
     height: 16px;
     line-height: 14px;
     padding-left: 2px;
-    /* 同樣防止撐開 */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .event-category-icon {
+    font-size: 11px;
+    margin-right: 3px;
   }
 }
 </style>

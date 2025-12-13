@@ -137,6 +137,9 @@
     "start": "開始",
     "end": "終了",
     "color": "色",
+    "category": "カテゴリ",
+    "selectCategory": "カテゴリ選択",
+    "manageCategories": "カテゴリ管理",
     "placeholder": {
       "title": "タイトルを入力...",
       "cost": "0",
@@ -228,5 +231,23 @@
       "queryFailed": "検索に失敗しました。後ほどお試しください",
       "selectTimeRange": "開始日時と終了日時を選択してください"
     }
+  },
+  "category": {
+    "sport": "スポーツ",
+    "health": "健康",
+    "work": "仕事",
+    "entertainment": "エンターテイメント",
+    "study": "学習",
+    "social": "社交",
+    "other": "その他",
+    "system": "システムカテゴリ",
+    "custom": "カスタムカテゴリ",
+    "add": "カテゴリ追加",
+    "edit": "カテゴリ編集",
+    "delete": "カテゴリ削除",
+    "name": "名前",
+    "color": "色",
+    "icon": "アイコン",
+    "confirmDelete": "このカテゴリを削除してもよろしいですか？"
   }
 }

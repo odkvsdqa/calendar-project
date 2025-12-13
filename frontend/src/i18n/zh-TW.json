@@ -135,6 +135,9 @@
     "start": "開始",
     "end": "結束",
     "color": "標籤顏色",
+    "category": "類型",
+    "selectCategory": "選擇類型",
+    "manageCategories": "管理類型",
     "placeholder": {
       "title": "請輸入標題...",
       "cost": "0",
@@ -226,5 +229,23 @@
         "dataSource": "🌐 資料來源：ExchangeRate-API"
       }
     }
+  },
+  "category": {
+    "sport": "體育",
+    "health": "健康",
+    "work": "工作",
+    "entertainment": "娛樂",
+    "study": "學習",
+    "social": "社交",
+    "other": "其他",
+    "system": "系統預設類型",
+    "custom": "自訂類型",
+    "add": "新增類型",
+    "edit": "編輯類型",
+    "delete": "刪除類型",
+    "name": "名稱",
+    "color": "顏色",
+    "icon": "圖標",
+    "confirmDelete": "確定要刪除此類型嗎？"
   }
 }

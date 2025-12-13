@@ -25,9 +25,15 @@
             :style="getLayoutStyle(layoutItem)"
             @click.stop="emit('edit-event', layoutItem.event)"
           >
-            <strong>{{ layoutItem.event.title }}</strong>
+            <!-- 🔥 修改重點：標題區加入圖標 -->
+            <div class="event-header">
+              <!-- 如果有 category 且有 icon，顯示圖標 -->
+              <span v-if="layoutItem.event.category?.icon" class="event-icon">
+                {{ layoutItem.event.category.icon }}
+              </span>
+              <strong class="event-title">{{ layoutItem.event.title }}</strong>
+            </div>
             
-            <!-- 🔥 修改：強制顯示 完整日期+時間 -->
             <div class="event-time">
               {{ formatFullDateTime(layoutItem.event.startTime, layoutItem.event.endTime) }}
             </div>
@@ -53,7 +59,7 @@ const props = defineProps({
 
 const emit = defineEmits(['add-event-at-time', 'edit-event'])
 
-// 🔥 核心：全域排版引擎 (Layout Engine)
+// 排版引擎 (Layout Engine) - 保持不變
 const dayLayout = computed(() => {
   const dayStart = new Date(props.currentDate); dayStart.setHours(0,0,0,0);
   const dayEnd = new Date(props.currentDate); dayEnd.setHours(23,59,59,999);
@@ -175,12 +181,10 @@ const getLayoutStyle = (layoutItem) => {
   }
 }
 
-// 🔥 新增：強制顯示完整日期時間格式
 const formatFullDateTime = (startIso, endIso) => {
   const s = parseDate(startIso)
   const e = parseDate(endIso)
   
-  // 格式：MM/DD HH:mm
   const format = (d) => {
     const month = d.getMonth() + 1
     const date = d.getDate()
@@ -204,31 +208,46 @@ const formatFullDateTime = (startIso, endIso) => {
 .hour-block:hover { background: #fcfcfc; }
 .day-event { position: absolute; background: #557c55; color: white; padding: 2px 6px; border-radius: 4px; overflow: hidden; cursor: pointer; transition: all 0.1s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); display: flex; flex-direction: column; justify-content: flex-start; }
 .day-event:hover { z-index: 50 !important; box-shadow: 0 4px 8px rgba(0,0,0,0.3); filter: brightness(1.05); }
-.day-event strong { font-weight: 600; font-size: 12px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+
+/* 🔥 新增：事件標題區塊 (Flex 排版) */
+.event-header {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* 圖標和文字的間距 */
+  width: 100%;
+}
+
+.event-icon {
+  font-size: 12px; /* 圖標大小 */
+  flex-shrink: 0; /* 防止圖標被壓縮 */
+  line-height: 1;
+}
+
+.event-title { 
+  font-weight: 600; 
+  font-size: 12px; 
+  line-height: 1.2; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2); 
+  flex: 1; /* 標題佔滿剩餘空間 */
+}
+
 .event-time { font-size: 10px; opacity: 0.9; margin-bottom: 2px; }
 .event-desc { font-size: 11px; margin-top: 2px; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-/* 
-   🔥 RWD 修正：
-   原本這裡有 left: 2px !important; right: 2px !important; 
-   這會導致手機版強行覆蓋 JS 算出來的寬度，導致事件疊在一起。
-   現在移除該設定，手機版就會乖乖聽 JS 的話排版了。
-*/
-/* src/components/DayView.vue */
-
-/* 🔥 RWD 手機版優化 */
+/* RWD 手機版優化 */
 @media (max-width: 768px) {
   .day-view { 
-    padding: 0; /* 移除外圍內距，爭取空間 */
+    padding: 0;
   }
   
   .day-view-container { 
-    /* 縮小左側時間軸寬度 (60px -> 40px)，讓右邊事件區大一點 */
     grid-template-columns: 40px 1fr; 
-    border: none; /* 手機版移除外框，更簡潔 */
+    border: none;
   }
   
-  /* 時間軸字體縮小 */
   .time-slot { 
     font-size: 10px; 
     padding: 8px 2px; 
@@ -236,29 +255,29 @@ const formatFullDateTime = (startIso, endIso) => {
     padding-right: 5px;
   }
   
-  /* 事件區調整 */
   .day-event { 
-    /* 移除左右強制邊距，讓它聽 Layout Engine 的話 */
-    /* padding: 2px 4px; */
-    
-    /* 字體調整 */
     padding: 1px 3px;
     border-radius: 3px;
   }
   
-  .day-event strong {
-    font-size: 10px; /* 標題縮小 */
+  /* 手機版字體縮小 */
+  .event-icon {
+    font-size: 10px;
+  }
+
+  .event-title {
+    font-size: 10px;
   }
   
   .event-time {
-    font-size: 9px; /* 時間縮小 */
+    font-size: 9px;
     line-height: 1;
     margin-bottom: 0;
     opacity: 0.8;
   }
   
   .event-desc {
-    display: none; /* 手機版空間太小，直接隱藏描述，只顯示標題與時間 */
+    display: none;
   }
 }
 </style>

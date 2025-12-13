@@ -1,4 +1,3 @@
-<!-- src/components/EventModal.vue -->
 <template>
   <BaseModal
     :show="true"
@@ -19,11 +18,35 @@
         />
       </div>
 
+      <!-- 類型選擇 -->
       <div class="form-group">
-        <!-- 🔥 預計花費（含幣別選擇）-->
+        <label>{{ $t("event.category") }}</label>
+        <div class="category-select-wrapper">
+          <select v-model="localForm.categoryId" class="input-styled">
+            <option :value="null">{{ $t('event.selectCategory') }}</option>
+            <option 
+              v-for="category in categories" 
+              :key="category.id" 
+              :value="category.id"
+            >
+              {{ getCategoryDisplayName(category) }} {{ category.icon }}
+            </option>
+          </select>
+          <button 
+            type="button" 
+            class="btn-manage-categories" 
+            @click="openCategoryManager"
+            title="管理類型"
+          >
+            ⚙️
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <!-- 預計花費（含幣別選擇）-->
         <label>{{ $t("event.cost") }}</label>
         <div class="cost-input-group">
-          <!-- 幣別選擇下拉 -->
           <select v-model="localForm.currency" class="currency-select">
             <option value="TWD">NT$</option>
             <option value="USD">$</option>
@@ -33,7 +56,6 @@
             <option value="KRW">₩</option>
           </select>
 
-          <!-- 金額輸入框 -->
           <input
             type="number"
             v-model="localForm.estimatedCost"
@@ -139,12 +161,22 @@
       </div>
     </div>
   </BaseModal>
+
+  <!-- 類型管理視窗 -->
+  <!-- 🔥 確保監聽 updated 事件，當有新類型時重新載入 -->
+  <CategoryManager 
+    v-if="showCategoryManager" 
+    @close="closeCategoryManager"
+    @updated="loadCategories"
+  />
 </template>
 
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import BaseModal from "./common/BaseModal.vue";
+import CategoryManager from "./CategoryManager.vue";
+import { useCategories } from "../composables/useCategories";
 
 const { t } = useI18n();
 
@@ -154,6 +186,10 @@ const props = defineProps({
 });
 const emit = defineEmits(["close", "save", "delete"]);
 const showDeleteConfirm = ref(false);
+const showCategoryManager = ref(false);
+
+// 類型管理
+const { categories, loadCategories, getCategoryDisplayName } = useCategories();
 
 const colorOptions = [
   { value: "#557c55", name: "森綠" },
@@ -170,7 +206,8 @@ const localForm = ref({
   endTime: "",
   color: "#557c55",
   estimatedCost: null,
-  currency: "TWD", // 🔥 預設新台幣
+  currency: "TWD",
+  categoryId: null,
 });
 
 const modalTitle = computed(() => {
@@ -184,24 +221,74 @@ const syncFormData = () => {
       ...props.eventForm,
       color: props.eventForm.color || "#557c55",
       estimatedCost: props.eventForm.estimatedCost || null,
-      currency: props.eventForm.currency || "TWD", // 🔥 同步幣別
+      currency: props.eventForm.currency || "TWD",
+      // 確保 categoryId 優先權
+      categoryId: props.eventForm.categoryId || props.eventForm.category?.id || null
     };
   }
 };
 
 const handleClose = () => emit("close");
-const handleSubmit = () => emit("save", localForm.value);
+
+const handleSubmit = () => {
+  // 🔥 防呆檢查：結束時間不能早於開始時間
+  const start = new Date(localForm.value.startTime);
+  const end = new Date(localForm.value.endTime);
+
+  if (end <= start) {
+    // 這裡使用你的 Toast 顯示錯誤，或者 alert
+    // 假設你有引入 useToast，沒有的話用 alert 也行
+    alert("結束時間必須晚於開始時間！"); 
+    return; // ⛔️ 阻止送出
+  }
+
+  console.log('💾 準備儲存事件:', localForm.value);
+  emit("save", localForm.value);
+};
+
 const handleDeleteClick = () => (showDeleteConfirm.value = true);
 const confirmDelete = () => {
   showDeleteConfirm.value = false;
   emit("delete", localForm.value.id);
 };
 
+// 類型管理
+const openCategoryManager = () => {
+  showCategoryManager.value = true;
+};
+
+const closeCategoryManager = () => {
+  showCategoryManager.value = false;
+  // 這裡不需要呼叫 loadCategories，因為 @updated 會處理資料更新，
+  // 若使用者只是開啟看一眼後關閉，就不需要多發一次 API。
+};
+
+// 初始化
+onMounted(async () => {
+  await loadCategories();
+  syncFormData();
+});
+
 syncFormData();
 watch(() => props.eventForm, syncFormData, { deep: true });
+
+watch(() => localForm.value.startTime, (newStartVal) => {
+  if (!newStartVal || !localForm.value.endTime) return;
+
+  const start = new Date(newStartVal);
+  const end = new Date(localForm.value.endTime);
+
+  // 如果「開始時間」跑到了「結束時間」之後 (或者相等)
+  if (start >= end) {
+    // 自動把「結束時間」設定為「開始時間 + 1 小時」
+    const newEnd = new Date(start.getTime() + 60 * 60 * 1000);
+    localForm.value.endTime = formatDateTimeLocal(newEnd);
+  }
+});
 </script>
 
 <style scoped>
+/* 樣式保持原樣 */
 .form-group {
   margin-bottom: 18px;
 }
@@ -229,7 +316,33 @@ watch(() => props.eventForm, syncFormData, { deep: true });
   border-color: #557c55;
 }
 
-/* 🔥 新增：金額輸入組（幣別 + 金額）*/
+/* 類型選擇樣式 */
+.category-select-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-manage-categories {
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  background: #f3f4f6;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-manage-categories:hover {
+  background: #e5e7eb;
+}
+
+/* 金額輸入組 */
 .cost-input-group {
   display: flex;
   gap: 8px;
