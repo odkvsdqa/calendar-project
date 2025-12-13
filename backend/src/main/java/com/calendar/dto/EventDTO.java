@@ -100,4 +100,25 @@ public class EventDTO {
 	public void setCurrency(String currency) {
 		this.currency = currency;
 	}
+
+	// 在現有的 EventDTO.java 中新增：
+
+	private String categoryId; // 🔥 新增
+	private CategoryDTO category; // 🔥 新增（完整資訊）
+
+	public String getCategoryId() {
+		return categoryId;
+	}
+
+	public void setCategoryId(String categoryId) {
+		this.categoryId = categoryId;
+	}
+
+	public CategoryDTO getCategory() {
+		return category;
+	}
+
+	public void setCategory(CategoryDTO category) {
+		this.category = category;
+	}
 }

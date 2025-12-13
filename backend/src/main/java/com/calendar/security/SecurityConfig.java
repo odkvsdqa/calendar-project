@@ -60,8 +60,13 @@ public class SecurityConfig {
 						// 🔥 這裡的規則如果 Controller 上有 @PreAuthorize 可以不用寫，但寫了雙重保險
 						.requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-						.requestMatchers("/api/venues/**").authenticated().requestMatchers("/api/preferences/**")
-						.authenticated().requestMatchers("/api/events/**").authenticated()
+						.requestMatchers("/api/venues/**").authenticated()
+
+						.requestMatchers("/api/categories/**").authenticated()
+
+						.requestMatchers("/api/preferences/**").authenticated()
+
+						.requestMatchers("/api/events/**").authenticated()
 
 						.anyRequest().authenticated())
 				.authenticationProvider(authenticationProvider)
