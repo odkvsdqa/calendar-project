@@ -1,16 +1,4 @@
 {
-  "ja-JP": {
-    "admin": {
-      "stats": {
-        "tabs": {
-          "exchangeRate": "為替レート"
-        },
-        "totalBudget": "今月の総予算",
-        "estimatedCost": "予想総費用",
-        "currencyNote": "💡 ヒント：通貨を切り替えて金額を換算"
-      }
-    }
-  },
   "common": {
     "confirm": "確認",
     "cancel": "キャンセル",
@@ -27,6 +15,69 @@
     "retry": "再試行",
     "manualUpdate": "手動更新"
   },
+  "auth": {
+    "login": "ログイン",
+    "register": "登録",
+    "logout": "ログアウト",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "confirmPassword": "パスワード確認",
+    "newPassword": "新しいパスワード",
+    "email": "メールアドレス",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "hasAccount": "すでにアカウントをお持ちですか？",
+    "registerNow": "新規登録",
+    "loginNow": "ログインへ",
+    "forgotPassword": "パスワードを忘れた",
+    "forgotPasswordHint": "登録時のメールアドレスを入力してください。確認コードを送信します",
+    "resetPassword": "パスワードリセット",
+    "confirmReset": "リセット確認",
+    "backToLogin": "ログインに戻る",
+    "resetSuccess": "パスワードリセット成功",
+    "changePassword": "パスワード変更",
+    "changePasswordHint": "セキュリティのため、登録メールに確認コードを送信します",
+    "changePasswordSuccess": "パスワード変更成功",
+    "logoutConfirmTitle": "ログアウトしますか？",
+    "logoutConfirmText": "現在のアカウントからログアウトしてもよろしいですか？",
+    "confirmLogout": "ログアウト",
+    "sloganTitle": "SKJL 予定",
+    "sloganDesc": "シンプルでスムーズ、効率的なスケジュール管理\nあなたの時間をより価値あるものに",
+    "errors": {
+      "passwordMismatch": "パスワードが一致しません",
+      "passwordTooShort": "パスワードは6文字以上必要です",
+      "registerFailed": "登録に失敗しました",
+      "loginFailed": "ログイン失敗。ユーザー名とパスワードを確認してください",
+      "resetFailed": "リセット失敗",
+      "operationFailed": "操作失敗",
+      "noPermission": "このページにアクセスする権限がありません"
+    },
+    "placeholder": {
+      "username": "ユーザー名を入力",
+      "email": "メールアドレスを入力",
+      "password": "パスワードを入力",
+      "confirmPassword": "パスワードを再入力",
+      "newPassword": "新しいパスワード (6文字以上)"
+    }
+  },
+  "verification": {
+    "sendCode": "コード送信",
+    "sendCodeToEmail": "メールに送信",
+    "resend": "再送信",
+    "code": "確認コード",
+    "codeSent": "確認コードを送信しました",
+    "sendFailed": "送信失敗",
+    "pleaseWait": "しばらくお待ちください",
+    "emailRequired": "メールアドレスを入力してください",
+    "codeRequired": "確認コードを入力してください",
+    "placeholder": {
+      "code": "6桁のコードを入力"
+    }
+  },
+  "messages": {
+    "saveSuccess": "保存しました",
+    "deleteSuccess": "削除しました",
+    "registerSuccess": "登録成功！3秒後にログインページへ移動します..."
+  },
   "header": {
     "calendar": "カレンダー",
     "admin": "管理画面",
@@ -40,7 +91,7 @@
   "venueNames": {
     "tmc": "台北流行音楽センター",
     "taipei-dome": "台北ドーム",
-     "makuhari-messe": "幕張メッセ" 
+    "makuhari-messe": "幕張メッセ" 
   },
   "venue": {
     "subscribeConfirmTitle": "購読の確認",
@@ -66,46 +117,6 @@
     "Europe_Paris": "パリ (GMT+1)",
     "Australia_Sydney": "シドニー (GMT+11)",
     "America_Los_Angeles": "ロサンゼルス (GMT-8)"
-  },
-  "errors": {
-    "default": "操作に失敗しました",
-    "sessionExpired": "セッションが切れました。再ログインしてください",
-    "forbidden": "権限がありません",
-    "notFound": "リソースが見つかりません",
-    "serverError": "サーバーエラーです。後ほどお試しください",
-    "apiFormat": "APIの形式エラー",
-    "loadEventsFailed": "イベントの読み込みに失敗しました",
-    "operationFailed": "操作失敗: ",
-    "deleteFailed": "削除失敗: "
-  },
-  "messages": {
-    "saveSuccess": "保存しました",
-    "deleteSuccess": "削除しました",
-    "registerSuccess": "登録成功！3秒後にログインページへ移動します..."
-  },
-  "auth": {
-    "login": "ログイン",
-    "register": "登録",
-    "logout": "ログアウト",
-    "username": "ユーザー名",
-    "password": "パスワード",
-    "confirmPassword": "パスワード確認",
-    "email": "メールアドレス",
-    "noAccount": "アカウントをお持ちでないですか？",
-    "hasAccount": "すでにアカウントをお持ちですか？",
-    "registerNow": "新規登録",
-    "loginNow": "ログインへ",
-    "logoutConfirmTitle": "ログアウトしますか？",
-    "logoutConfirmText": "現在のアカウントからログアウトしてもよろしいですか？",
-    "confirmLogout": "ログアウト",
-    "sloganTitle": "SKJL 予定",
-    "sloganDesc": "シンプルでスムーズ、効率的なスケジュール管理\nあなたの時間をより価値あるものに",
-    "errors": {
-      "passwordMismatch": "パスワードが一致しません",
-      "registerFailed": "登録に失敗しました。後ほどお試しください",
-      "loginFailed": "ログイン失敗。ユーザー名とパスワードを確認してください",
-      "noPermission": "このページにアクセスする権限がありません"
-    }
   },
   "calendar": {
     "view": {
@@ -133,6 +144,7 @@
     "editTitle": "予定を編集",
     "title": "タイトル",
     "cost": "予算",
+    "currency": "通貨",
     "description": "メモ",
     "start": "開始",
     "end": "終了",
@@ -145,16 +157,16 @@
       "cost": "0",
       "desc": "詳細を入力..."
     },
-    "currencies": {
-    "TWD": "台湾ドル (NT$)",
-    "USD": "米ドル ($)",
-    "JPY": "日本円 (¥)",
-    "EUR": "ユーロ (€)",
-    "CNY": "人民元 (¥)",
-    "KRW": "韓国ウォン (₩)"
-  },
     "deleteConfirmTitle": "削除の確認",
-    "deleteConfirmText": "この予定を削除してもよろしいですか？"
+    "deleteConfirmText": "この予定を削除してもよろしいですか？",
+    "currencies": {
+      "TWD": "台湾ドル (NT$)",
+      "USD": "米ドル ($)",
+      "JPY": "日本円 (¥)",
+      "EUR": "ユーロ (€)",
+      "CNY": "人民元 (¥)",
+      "KRW": "韓国ウォン (₩)"
+    }
   },
   "admin": {
     "dashboard": "管理者ダッシュボード",
@@ -171,7 +183,8 @@
       "totalBudget": "今月の総予算",
       "estimatedCost": "予想総費用",
       "scheduledDays": "予定あり日数",
-      "scheduledUsers": "予定ありユーザー"
+      "scheduledUsers": "予定ありユーザー",
+      "currencyNote": "💡 ヒント：通貨を切り替えて金額を換算"
     },
     "components": {
       "dateQuery": {

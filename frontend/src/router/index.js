@@ -4,6 +4,7 @@ import RegisterView from '../views/RegisterView.vue'
 import CalendarView from '../views/CalendarView.vue'
 import AdminView from '../views/AdminView.vue'
 import { isAuthenticated, getUserInfo } from '../utils/auth'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 
 const routes = [
   {
@@ -27,6 +28,12 @@ const routes = [
     name: 'Calendar',
     component: CalendarView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPasswordView,
+    meta: { requiresAuth: false }
   },
   {
     path: '/admin',

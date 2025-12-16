@@ -15,6 +15,17 @@ const subscribedVenueIds = ref(new Set(savedIds)); // 使用讀取到的紀錄�
 const externalEventsMap = ref({});
 const isLoading = ref(false);
 
+// 建議在 useVenues.js 加入快取機制
+const cachedData = ref(new Map())
+
+const loadVenueData = async (venueId) => {
+  if (cachedData.value.has(venueId)) {
+    return cachedData.value.get(venueId)
+  }
+  // 爬取新資料
+  cachedData.value.set(venueId, data)
+}
+
 export function useVenues() {
   const { showToast } = useToast();
   const { locale } = useI18n();

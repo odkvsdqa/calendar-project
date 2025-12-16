@@ -1,13 +1,4 @@
 {
-  "en-US": {
-    "admin": {
-      "stats": {
-        "totalBudget": "Total Budget",
-        "estimatedCost": "Est. Total Cost",
-        "currencyNote": "💡 Tip: Switch currency to convert amounts"
-      }
-    }
-  },
   "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
@@ -23,6 +14,69 @@
     "update": "Update",
     "retry": "Retry",
     "manualUpdate": "Manual Update"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "newPassword": "New Password",
+    "email": "Email",
+    "noAccount": "No account yet?",
+    "hasAccount": "Already have an account?",
+    "registerNow": "Register Now",
+    "loginNow": "Login Now",
+    "forgotPassword": "Forgot Password",
+    "forgotPasswordHint": "Please enter your registered email, we will send a verification code to your mailbox",
+    "resetPassword": "Reset Password",
+    "confirmReset": "Confirm Reset",
+    "backToLogin": "Back to Login",
+    "resetSuccess": "Password reset successfully",
+    "changePassword": "Change Password",
+    "changePasswordHint": "For security, we will send a verification code to your registered email",
+    "changePasswordSuccess": "Password changed successfully",
+    "logoutConfirmTitle": "Leaving so soon?",
+    "logoutConfirmText": "Are you sure you want to logout?",
+    "confirmLogout": "Logout",
+    "sloganTitle": "SKJL Booking",
+    "sloganDesc": "Simple, fluid, efficient schedule management\nMake your time more valuable",
+    "errors": {
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "registerFailed": "Registration failed, please try again",
+      "loginFailed": "Login failed, check username and password",
+      "resetFailed": "Reset failed, please try again",
+      "operationFailed": "Operation failed",
+      "noPermission": "You do not have permission to access this page"
+    },
+    "placeholder": {
+      "username": "Enter username",
+      "email": "Enter email",
+      "password": "Enter password",
+      "confirmPassword": "Confirm password",
+      "newPassword": "Enter new password (min 6 chars)"
+    }
+  },
+  "verification": {
+    "sendCode": "Send Code",
+    "sendCodeToEmail": "Send Code to Email",
+    "resend": "Resend",
+    "code": "Verification Code",
+    "codeSent": "Verification code sent to your email",
+    "sendFailed": "Send failed, please try again",
+    "pleaseWait": "Please wait",
+    "emailRequired": "Please enter email",
+    "codeRequired": "Please enter verification code",
+    "placeholder": {
+      "code": "Enter 6-digit code"
+    }
+  },
+  "messages": {
+    "saveSuccess": "Saved successfully",
+    "deleteSuccess": "Deleted successfully",
+    "registerSuccess": "Registration successful! Redirecting to login..."
   },
   "header": {
     "calendar": "Calendar",
@@ -64,46 +118,6 @@
     "Australia_Sydney": "Sydney (GMT+11)",
     "America_Los_Angeles": "Los Angeles (GMT-8)"
   },
-  "errors": {
-    "default": "Operation failed",
-    "sessionExpired": "Session expired, please login again",
-    "forbidden": "Permission denied",
-    "notFound": "Resource not found",
-    "serverError": "Server error, please try again later",
-    "apiFormat": "Invalid API response format",
-    "loadEventsFailed": "Failed to load events",
-    "operationFailed": "Operation failed: ",
-    "deleteFailed": "Delete failed: "
-  },
-  "messages": {
-    "saveSuccess": "Saved successfully",
-    "deleteSuccess": "Deleted successfully",
-    "registerSuccess": "Registration successful! Redirecting to login..."
-  },
-  "auth": {
-    "login": "Login",
-    "register": "Register",
-    "logout": "Logout",
-    "username": "Username",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "email": "Email",
-    "noAccount": "No account yet?",
-    "hasAccount": "Already have an account?",
-    "registerNow": "Register Now",
-    "loginNow": "Login Now",
-    "logoutConfirmTitle": "Leaving so soon?",
-    "logoutConfirmText": "Are you sure you want to logout?",
-    "confirmLogout": "Logout",
-    "sloganTitle": "SKJL Booking",
-    "sloganDesc": "Simple, fluid, efficient schedule management\nMake your time more valuable",
-    "errors": {
-      "passwordMismatch": "Passwords do not match",
-      "registerFailed": "Registration failed, please try again",
-      "loginFailed": "Login failed, check username and password",
-      "noPermission": "You do not have permission to access this page"
-    }
-  },
   "calendar": {
     "view": {
       "year": "Year",
@@ -130,6 +144,7 @@
     "editTitle": "Edit Event",
     "title": "Title",
     "cost": "Cost",
+    "currency": "Currency",
     "description": "Description",
     "start": "Start",
     "end": "End",
@@ -142,16 +157,16 @@
       "cost": "0",
       "desc": "Notes..."
     },
-     "currencies": {
-    "TWD": "Taiwan Dollar (NT$)",
-    "USD": "US Dollar ($)",
-    "JPY": "Japanese Yen (¥)",
-    "EUR": "Euro (€)",
-    "CNY": "Chinese Yuan (¥)",
-    "KRW": "Korean Won (₩)"
-  },
     "deleteConfirmTitle": "Delete Event",
-    "deleteConfirmText": "Are you sure you want to delete this event?"
+    "deleteConfirmText": "Are you sure you want to delete this event?",
+    "currencies": {
+      "TWD": "Taiwan Dollar (NT$)",
+      "USD": "US Dollar ($)",
+      "JPY": "Japanese Yen (¥)",
+      "EUR": "Euro (€)",
+      "CNY": "Chinese Yuan (¥)",
+      "KRW": "Korean Won (₩)"
+    }
   },
   "admin": {
     "dashboard": "Admin Dashboard",
@@ -168,7 +183,8 @@
       "totalBudget": "Total Budget",
       "estimatedCost": "Est. Total Cost",
       "scheduledDays": "Scheduled Days",
-      "scheduledUsers": "Scheduled Users"
+      "scheduledUsers": "Scheduled Users",
+      "currencyNote": "💡 Tip: Switch currency to convert amounts"
     },
     "components": {
       "dateQuery": {

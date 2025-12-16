@@ -1,25 +1,51 @@
 <template>
   <div class="register-form">
     <h2>{{ $t("auth.register") }}</h2>
+
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
         <label>{{ $t("auth.username") }}</label>
         <input
           type="text"
           v-model="form.username"
-          :placeholder="$t('auth.username')"
           required
           minlength="3"
           maxlength="20"
+          :placeholder="$t('auth.placeholder.username')"
         />
       </div>
 
       <div class="form-group">
         <label>{{ $t("auth.email") }}</label>
+        <div class="input-with-button">
+          <input
+            type="email"
+            v-model="form.email"
+            required
+            :placeholder="$t('auth.placeholder.email')"
+            :disabled="codeSent"
+          />
+          <button
+            type="button"
+            class="btn-verify"
+            @click="handleSendCode"
+            :disabled="!canResend || loading || verifyLoading"
+          >
+            <span v-if="verifyLoading">發送中...</span>
+            <span v-else>{{
+              countdown > 0 ? `${countdown}s` : $t("verification.sendCode")
+            }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>{{ $t("verification.code") }}</label>
         <input
-          type="email"
-          v-model="form.email"
-          :placeholder="$t('auth.email')"
+          type="text"
+          v-model="form.code"
+          maxlength="6"
+          :placeholder="$t('verification.placeholder.code')"
           required
         />
       </div>
@@ -29,9 +55,9 @@
         <input
           type="password"
           v-model="form.password"
-          :placeholder="$t('auth.password')"
           required
           minlength="6"
+          :placeholder="$t('auth.placeholder.password')"
         />
       </div>
 
@@ -40,17 +66,13 @@
         <input
           type="password"
           v-model="form.confirmPassword"
-          :placeholder="$t('auth.confirmPassword')"
           required
+          :placeholder="$t('auth.placeholder.confirmPassword')"
         />
       </div>
 
       <div v-if="errorMessage" class="error-message">
         {{ errorMessage }}
-      </div>
-
-      <div v-if="successMessage" class="success-message">
-        {{ successMessage }}
       </div>
 
       <button type="submit" class="btn-submit" :disabled="loading">
@@ -69,50 +91,58 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { register } from "../../services/authService";
+import { useVerification } from "../../composables/useVerification";
+import api from "../../services/api";
+import { useToast } from "../../composables/useToast";
 
-const router = useRouter();
 const { t } = useI18n();
+const router = useRouter();
+const { showToast } = useToast();
+const {
+  loading: verifyLoading,
+  countdown,
+  canResend,
+  sendCode,
+} = useVerification();
 
 const form = ref({
   username: "",
   email: "",
   password: "",
   confirmPassword: "",
+  code: "",
 });
-
 const loading = ref(false);
+const codeSent = ref(false);
 const errorMessage = ref("");
-const successMessage = ref("");
+
+const handleSendCode = async () => {
+  const success = await sendCode(form.value.email, "register");
+  if (success) {
+    codeSent.value = true;
+  }
+};
 
 const handleSubmit = async () => {
   errorMessage.value = "";
-  successMessage.value = "";
 
   if (form.value.password !== form.value.confirmPassword) {
-    errorMessage.value = t("auth.confirmPassword")  // 簡單提示
+    errorMessage.value = t("auth.errors.passwordMismatch");
+    return;
+  }
+  if (!form.value.code) {
+    errorMessage.value = t("verification.codeRequired");
     return;
   }
 
   loading.value = true;
-
   try {
-    const registerData = {
-      username: form.value.username,
-      email: form.value.email,
-      password: form.value.password,
-    };
-
-    await register(registerData);
-
-    successMessage.value = t('messages.registerSuccess')
-
-    setTimeout(() => {
-      router.push("/login");
-    }, 3000);
+    await api.post("/auth/register", form.value);
+    showToast(t("messages.registerSuccess"), "success");
+    setTimeout(() => router.push("/login"), 2000);
   } catch (error) {
-    console.error("Register failed:", error);
-    errorMessage.value = error.response?.data?.message || t('auth.errors.registerFailed');
+    errorMessage.value =
+      error.response?.data?.message || t("auth.errors.registerFailed");
   } finally {
     loading.value = false;
   }
@@ -120,19 +150,30 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-/* 樣式保持不變 (請保留您原本的 CSS) */
-.register-form {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
+.input-with-button {
+  display: flex;
+  gap: 10px;
 }
-h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 24px;
+.input-with-button input {
+  flex: 1;
+}
+.btn-verify {
+  width: 120px;
+  padding: 0;
+  font-size: 13px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.btn-verify:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+.btn-verify:hover:not(:disabled) {
+  background: #5a67d8;
 }
 .form-group {
   margin-bottom: 20px;
@@ -149,28 +190,7 @@ h2 {
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
-  transition: border-color 0.3s;
   box-sizing: border-box;
-}
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-.error-message {
-  background: #fee;
-  color: #e53e3e;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-.success-message {
-  background: #d4edda;
-  color: #155724;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
 }
 .btn-submit {
   width: 100%;
@@ -182,15 +202,13 @@ h2 {
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s;
 }
-.btn-submit:hover:not(:disabled) {
-  background: #5568d3;
-  transform: translateY(-2px);
-}
-.btn-submit:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+.error-message {
+  background: #fee;
+  color: #e53e3e;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 .form-footer {
   text-align: center;
@@ -201,8 +219,5 @@ h2 {
   color: #667eea;
   text-decoration: none;
   font-weight: bold;
-}
-.form-footer a:hover {
-  text-decoration: underline;
 }
 </style>
