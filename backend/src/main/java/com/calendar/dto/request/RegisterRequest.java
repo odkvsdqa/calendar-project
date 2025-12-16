@@ -18,15 +18,21 @@ public class RegisterRequest {
 	@Size(min = 6, message = "密碼長度至少為 6")
 	private String password;
 
+	// 🔥 新增：驗證碼欄位
+	@NotBlank(message = "驗證碼不能為空")
+	private String code;
+
 	public RegisterRequest() {
 	}
 
-	public RegisterRequest(String username, String email, String password) {
+	public RegisterRequest(String username, String email, String password, String code) {
 		this.username = username;
 		this.email = email;
 		this.password = password;
+		this.code = code;
 	}
 
+	// Getters and Setters
 	public String getUsername() {
 		return username;
 	}
@@ -49,5 +55,13 @@ public class RegisterRequest {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 }
