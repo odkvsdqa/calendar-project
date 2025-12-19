@@ -4,6 +4,7 @@
     "cancel": "キャンセル",
     "save": "保存",
     "delete": "削除",
+    "submit": "送信",
     "loading": "読込中...",
     "close": "閉じる",
     "query": "検索",
@@ -76,7 +77,8 @@
   "messages": {
     "saveSuccess": "保存しました",
     "deleteSuccess": "削除しました",
-    "registerSuccess": "登録成功！3秒後にログインページへ移動します..."
+    "registerSuccess": "登録成功！3秒後にログインページへ移動します...",
+    "wishSuccess": "リクエストを受け付けました！ありがとうございます。"
   },
   "header": {
     "calendar": "カレンダー",
@@ -85,13 +87,16 @@
     "navigation": "ナビゲーション",
     "language": "言語",
     "venues": "会場購読",
+    "holidays": "祝日・休日",
     "theme": "テーマ",
     "timezone": "タイムゾーン"
   },
   "venueNames": {
     "tmc": "台北流行音楽センター",
     "taipei-dome": "台北ドーム",
-    "makuhari-messe": "幕張メッセ" 
+    "makuhari-messe": "幕張メッセ",
+    "holiday-tw": "台湾の祝日",
+    "holiday-jp": "日本の祝日"
   },
   "venue": {
     "subscribeConfirmTitle": "購読の確認",
@@ -99,7 +104,11 @@
     "unsubscribeConfirmTitle": "購読解除",
     "unsubscribeConfirmText": "「{name}」の購読を解除しますか？イベントは削除されます。",
     "subscribe": "購読する",
-    "unsubscribe": "解除する"
+    "unsubscribe": "解除する",
+    "wishBtn": "新しい会場をリクエスト",
+    "wishTitle": "この会場を追加してほしい！",
+    "wishDesc": "追加したい会場名を入力してください。人気度に応じて優先的に対応します。",
+    "wishPlaceholder": "例：高雄アリーナ、台中国家歌劇院..."
   },
   "theme": {
     "light": "ライトモード",
@@ -175,7 +184,8 @@
       "monthlyStats": "月間統計",
       "timeRange": "期間統計",
       "userSchedule": "ユーザー予定",
-      "exchangeRate": "為替レート"
+      "exchangeRate": "為替レート",
+      "venueStats": "会場統計"
     },
     "stats": {
       "activeUsers": "アクティブユーザー",
@@ -226,6 +236,11 @@
         "baseCurrency": "基準通貨",
         "dataSource": "データソース",
         "autoUpdate": "レートは毎日午前2時に自動更新されます"
+      },
+      "venueStats": {
+        "title": "会場人気度＆リクエスト",
+        "popularity": "クリック人気ランキング",
+        "wishlist": "ユーザーリクエスト一覧"
       }
     },
     "exchangeRate": {

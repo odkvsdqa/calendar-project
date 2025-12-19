@@ -4,6 +4,7 @@
     "cancel": "取消",
     "save": "儲存",
     "delete": "刪除",
+    "submit": "送出",
     "loading": "載入中...",
     "close": "關閉",
     "query": "查詢",
@@ -37,9 +38,9 @@
     "changePassword": "修改密碼",
     "changePasswordHint": "為了安全起見，我們將發送驗證碼至您的註冊信箱進行驗證",
     "changePasswordSuccess": "密碼修改成功",
-    "logoutConfirmTitle": "確認登出",
+    "logoutConfirmTitle": "確定要離開嗎？",
     "logoutConfirmText": "確定要登出目前的帳號嗎？",
-    "confirmLogout": "確認登出",
+    "confirmLogout": "登出",
     "sloganTitle": "SKJL 預定",
     "sloganDesc": "簡約、流暢、高效的行程管理\n讓您的時間更有價值",
     "errors": {
@@ -76,7 +77,8 @@
   "messages": {
     "saveSuccess": "儲存成功",
     "deleteSuccess": "刪除成功",
-    "registerSuccess": "註冊成功！3秒後跳轉到登入頁面..."
+    "registerSuccess": "註冊成功！3秒後跳轉到登入頁面...",
+    "wishSuccess": "許願成功！感謝您的回饋"
   },
   "header": {
     "calendar": "日曆",
@@ -85,13 +87,16 @@
     "navigation": "導航",
     "language": "語言",
     "venues": "熱門場館訂閱",
+    "holidays": "國定假日",
     "theme": "主題外觀",
     "timezone": "時區設定"
   },
   "venueNames": {
     "tmc": "臺北流行音樂中心",
     "taipei-dome": "臺北大巨蛋",
-    "makuhari-messe": "幕張展覽館 (日本)" 
+    "makuhari-messe": "幕張展覽館 (日本)",
+    "holiday-tw": "台灣國定假日",
+    "holiday-jp": "日本國定假日"
   },
   "venue": {
     "subscribeConfirmTitle": "訂閱確認",
@@ -99,7 +104,11 @@
     "unsubscribeConfirmTitle": "取消訂閱",
     "unsubscribeConfirmText": "確定要取消訂閱「{name}」嗎？相關活動將從日曆中移除。",
     "subscribe": "訂閱",
-    "unsubscribe": "取消訂閱"
+    "unsubscribe": "取消訂閱",
+    "wishBtn": "許願新場地",
+    "wishTitle": "我想看到這個場地！",
+    "wishDesc": "請輸入您希望新增的場館名稱，我們會依據熱門程度優先開發爬蟲。",
+    "wishPlaceholder": "例如：高雄巨蛋、臺中歌劇院..."
   },
   "theme": {
     "light": "淺色模式",
@@ -175,7 +184,8 @@
       "monthlyStats": "按月份統計",
       "timeRange": "按時間範圍",
       "userSchedule": "用戶排程",
-      "exchangeRate": "匯率資訊"
+      "exchangeRate": "匯率資訊",
+      "venueStats": "熱門場館統計"
     },
     "stats": {
       "activeUsers": "活躍用戶數",
@@ -226,6 +236,11 @@
         "baseCurrency": "基準貨幣",
         "dataSource": "資料來源",
         "autoUpdate": "匯率每天凌晨 2:00 自動更新"
+      },
+      "venueStats": {
+        "title": "場館熱度與許願池",
+        "popularity": "點擊熱度排行",
+        "wishlist": "使用者許願池"
       }
     },
     "exchangeRate": {
@@ -242,7 +257,7 @@
     "errors": {
       "selectDate": "請選擇日期",
       "queryFailed": "查詢失敗，請稍後再試",
-      "selectTimeRange": "請選擇開始日期和結束日期"
+      "selectTimeRange": "請選擇開始與結束時間"
     }
   },
   "category": {

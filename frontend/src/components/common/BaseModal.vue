@@ -55,7 +55,7 @@ const handleClose = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 3000;
   animation: fadeIn 0.2s ease-out;
 }
 

@@ -4,6 +4,7 @@
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",
+    "submit": "Submit",
     "loading": "Loading...",
     "close": "Close",
     "query": "Query",
@@ -76,7 +77,8 @@
   "messages": {
     "saveSuccess": "Saved successfully",
     "deleteSuccess": "Deleted successfully",
-    "registerSuccess": "Registration successful! Redirecting to login..."
+    "registerSuccess": "Registration successful! Redirecting to login...",
+    "wishSuccess": "Request submitted! Thank you for your feedback."
   },
   "header": {
     "calendar": "Calendar",
@@ -85,13 +87,16 @@
     "navigation": "Navigation",
     "language": "Language",
     "venues": "Venue Subscription",
+    "holidays": "Public Holidays",
     "theme": "Theme",
     "timezone": "Timezone"
   },
   "venueNames": {
     "tmc": "Taipei Music Center",
     "taipei-dome": "Taipei Dome",
-    "makuhari-messe": "Makuhari Messe (Japan)" 
+    "makuhari-messe": "Makuhari Messe (Japan)",
+    "holiday-tw": "Taiwan Public Holidays",
+    "holiday-jp": "Japan Public Holidays"
   },
   "venue": {
     "subscribeConfirmTitle": "Confirm Subscription",
@@ -99,7 +104,11 @@
     "unsubscribeConfirmTitle": "Unsubscribe",
     "unsubscribeConfirmText": "Unsubscribe from \"{name}\"? Events will be removed.",
     "subscribe": "Subscribe",
-    "unsubscribe": "Unsubscribe"
+    "unsubscribe": "Unsubscribe",
+    "wishBtn": "Request New Venue",
+    "wishTitle": "I want to see this venue!",
+    "wishDesc": "Enter the name of the venue you'd like to add. We prioritize development based on popularity.",
+    "wishPlaceholder": "e.g., Kaohsiung Arena, Taichung Opera House..."
   },
   "theme": {
     "light": "Light Mode",
@@ -175,7 +184,8 @@
       "monthlyStats": "Monthly Stats",
       "timeRange": "Time Range",
       "userSchedule": "User Schedule",
-      "exchangeRate": "Exchange Rates"
+      "exchangeRate": "Exchange Rates",
+      "venueStats": "Venue Stats"
     },
     "stats": {
       "activeUsers": "Active Users",
@@ -226,12 +236,12 @@
         "baseCurrency": "Base Currency",
         "dataSource": "Data Source",
         "autoUpdate": "Rates auto-update daily at 2:00 AM"
+      },
+      "venueStats": {
+        "title": "Venue Popularity & Wishlist",
+        "popularity": "Click Popularity Ranking",
+        "wishlist": "User Wishlist"
       }
-    },
-    "errors": {
-      "selectDate": "Please select a date",
-      "queryFailed": "Query failed, please try again later",
-      "selectTimeRange": "Please select start and end time"
     },
     "exchangeRate": {
       "status": {
@@ -243,6 +253,11 @@
         "baseCurrency": "📊 Base Currency: Taiwan Dollar (TWD)",
         "dataSource": "🌐 Data Source: ExchangeRate-API"
       }
+    },
+    "errors": {
+      "selectDate": "Please select a date",
+      "queryFailed": "Query failed, please try again later",
+      "selectTimeRange": "Please select start and end time"
     }
   },
   "category": {

@@ -1,13 +1,15 @@
-import { ref, computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import venueApi from '../services/venueApi';
-import { useToast } from './useToast';
+import { ref, computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import venueApi from "../services/venueApi";
+import { useToast } from "./useToast";
 
+const venueList = ref([]); // 純場館
+const holidayList = ref([]); // 純假日
 // 定義 LocalStorage 的 Key
-const STORAGE_KEY = 'skjl_subscribed_venues';
+const STORAGE_KEY = "skjl_subscribed_venues";
 
 // 1. 初始化時，嘗試從 LocalStorage 讀取舊的訂閱紀錄
-const savedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+const savedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
 // 全域狀態
 const availableVenues = ref([]);
@@ -16,15 +18,15 @@ const externalEventsMap = ref({});
 const isLoading = ref(false);
 
 // 建議在 useVenues.js 加入快取機制
-const cachedData = ref(new Map())
+const cachedData = ref(new Map());
 
 const loadVenueData = async (venueId) => {
   if (cachedData.value.has(venueId)) {
-    return cachedData.value.get(venueId)
+    return cachedData.value.get(venueId);
   }
   // 爬取新資料
-  cachedData.value.set(venueId, data)
-}
+  cachedData.value.set(venueId, data);
+};
 
 export function useVenues() {
   const { showToast } = useToast();
@@ -34,9 +36,17 @@ export function useVenues() {
   const fetchVenueList = async () => {
     try {
       const res = await venueApi.getVenueList(locale.value);
-      availableVenues.value = res.data;
+      const allItems = res.data;
+
+      // 🔥 關鍵邏輯：拆分清單
+      // 假設後端回傳的 ID 是 holiday-tw, holiday-jp
+      holidayList.value = allItems.filter((v) => v.id.startsWith("holiday-"));
+      venueList.value = allItems.filter((v) => !v.id.startsWith("holiday-"));
+
+      // availableVenues 保持原樣，用於邏輯查找 (如果其他地方有用到)
+      availableVenues.value = allItems;
     } catch (error) {
-      console.error('無法取得場館列表', error);
+      console.error("無法取得列表", error);
     }
   };
 
@@ -53,10 +63,10 @@ export function useVenues() {
     isLoading.value = true;
     try {
       const res = await venueApi.getVenueEvents(venueId);
-      const formattedEvents = res.data.map(evt => ({
+      const formattedEvents = res.data.map((evt) => ({
         ...evt,
         isExternal: true,
-        source: venueId
+        source: venueId,
       }));
       externalEventsMap.value[venueId] = formattedEvents;
       // 這裡不顯示 Toast，避免重整時跳出一堆通知
@@ -77,7 +87,7 @@ export function useVenues() {
       // 新增訂閱
       subscribedVenueIds.value.add(venueId);
       await loadVenueData(venueId);
-      showToast('已載入活動', 'success');
+      showToast("已載入活動", "success");
     }
     // 2. 狀態改變時，同步存入 LocalStorage
     saveToStorage();
@@ -85,14 +95,17 @@ export function useVenues() {
 
   // 存檔 helper
   const saveToStorage = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...subscribedVenueIds.value]));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([...subscribedVenueIds.value])
+    );
   };
 
   // 3. 🔥 新增：還原訂閱資料 (給 App 啟動時呼叫)
   const restoreSubscriptions = async () => {
     if (subscribedVenueIds.value.size === 0) return;
-    
-    console.log('正在還原訂閱場館資料...');
+
+    console.log("正在還原訂閱場館資料...");
     const promises = [];
     for (const venueId of subscribedVenueIds.value) {
       promises.push(loadVenueData(venueId));
@@ -102,7 +115,7 @@ export function useVenues() {
 
   const allExternalEvents = computed(() => {
     let all = [];
-    subscribedVenueIds.value.forEach(id => {
+    subscribedVenueIds.value.forEach((id) => {
       if (externalEventsMap.value[id]) {
         all = all.concat(externalEventsMap.value[id]);
       }
@@ -111,12 +124,14 @@ export function useVenues() {
   });
 
   return {
+    venueList, // 匯出這兩個
+    holidayList, // 匯出這兩個
     availableVenues,
     subscribedVenueIds,
     isLoading,
     fetchVenueList,
     toggleVenueSubscription,
     restoreSubscriptions, // 記得匯出這個
-    allExternalEvents
+    allExternalEvents,
   };
 }

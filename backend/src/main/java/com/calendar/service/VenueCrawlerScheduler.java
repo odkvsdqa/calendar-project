@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +30,6 @@ public class VenueCrawlerScheduler {
 
 	// 🔥 修改點：使用 fixedRateString 讀取設定檔
 	// 這樣以後要改時間，改 application.properties 就好
-	@EventListener(ApplicationReadyEvent.class)
 	@Scheduled(fixedRateString = "${app.crawler.fixed-rate}")
 	public void runCrawlers() {
 		log.info("⏰ 開始執行場館爬蟲排程...");

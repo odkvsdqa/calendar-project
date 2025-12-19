@@ -106,7 +106,7 @@
             <div v-show="isVenuesExpanded" class="accordion-body">
               <div class="lang-options">
                 <div
-                  v-for="venue in availableVenues"
+                  v-for="venue in venueList"
                   :key="venue.id"
                   class="lang-item"
                   :class="{ active: subscribedVenueIds.has(venue.id) }"
@@ -117,7 +117,10 @@
                     >✓</span
                   >
                 </div>
-
+                <!--  新增：許願按鈕 -->
+                <button class="btn-wish" @click="openWishModal">
+                  ✨ {{ $t("venue.wishBtn") }}
+                </button>
                 <div
                   v-if="isLoading"
                   class="drawer-link"
@@ -131,6 +134,38 @@
 
           <div class="drawer-divider"></div>
 
+          <!--  新增：「國定假日」區塊 -->
+          <div class="accordion-item">
+            <div
+              class="accordion-header"
+              @click="isHolidaysExpanded = !isHolidaysExpanded"
+            >
+              <span class="accordion-title">📅 {{ $t('header.holidays') }}</span>
+              <!-- 建議加進 i18n -->
+              <span class="arrow" :class="{ rotated: isHolidaysExpanded }"
+                >▼</span
+              >
+            </div>
+
+            <div v-show="isHolidaysExpanded" class="accordion-body">
+              <div class="lang-options">
+                <!--  這裡跑 holidayList -->
+                <div
+                  v-for="holiday in holidayList"
+                  :key="holiday.id"
+                  class="lang-item"
+                  :class="{ active: subscribedVenueIds.has(holiday.id) }"
+                  @click="handleVenueClick(holiday)"
+                >
+                  <!-- 操作邏輯完全共用 handleVenueClick -->
+                  <span>{{ $t("venueNames." + holiday.id) }}</span>
+                  <span v-if="subscribedVenueIds.has(holiday.id)" class="check"
+                    >✓</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- 3. 主題切換 -->
           <div class="accordion-item">
             <div class="accordion-header" @click="toggleTheme">
@@ -291,18 +326,43 @@
     >
       <ChangePasswordForm @success="handlePasswordChanged" />
     </BaseModal>
+
+    <!-- 🔥 新增：許願 Modal -->
+    <BaseModal
+      :show="showWishModal"
+      :title="$t('venue.wishTitle')"
+      width="350px"
+      @close="showWishModal = false"
+    >
+      <div class="wish-form">
+        <p class="wish-desc">{{ $t("venue.wishDesc") }}</p>
+        <input
+          v-model="wishName"
+          class="input-styled"
+          :placeholder="$t('venue.wishPlaceholder')"
+          @keyup.enter="submitWish"
+        />
+        <div class="modal-footer-simple">
+          <button class="btn-submit" @click="submitWish" :disabled="!wishName">
+            {{ $t("common.submit") }}
+          </button>
+        </div>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import venueApi from "../../services/venueApi"; // 引入 API
 import SkjlLogo from "../SkjlLogo.vue";
 import BaseModal from "../../components/common/BaseModal.vue";
 import ChangePasswordForm from "../auth/ChangePasswordForm.vue";
 import { preferenceApi } from "../../services/preferenceApi";
 import { useVenues } from "../../composables/useVenues";
 import { useTheme } from "../../composables/useTheme";
+import { useToast } from "../../composables/useToast";
 
 const props = defineProps({
   username: { type: String, required: true },
@@ -311,6 +371,7 @@ const props = defineProps({
 const emit = defineEmits(["logout"]);
 
 const { t, locale } = useI18n();
+const { showToast } = useToast();
 const isAdmin = computed(() => props.userRole === "ADMIN");
 
 // 主題管理
@@ -325,9 +386,12 @@ const isDrawerOpen = ref(false);
 const isNavExpanded = ref(false);
 const isLangExpanded = ref(false);
 const isVenuesExpanded = ref(true);
-
+const showWishModal = ref(false); //  控制許願視窗開關
+const wishName = ref(""); // 綁定輸入框內容
 // 場館訂閱 Composable
 const {
+  venueList,  
+  holidayList,
   availableVenues,
   subscribedVenueIds,
   toggleVenueSubscription,
@@ -339,7 +403,8 @@ const {
 const showVenueConfirmModal = ref(false);
 const targetVenue = ref(null);
 const isSubscribingAction = ref(true);
-
+// 補上這個變數定義，用來控制「國定假日」選單的開合
+const isHolidaysExpanded = ref(true)
 const venueModalTitle = computed(() =>
   isSubscribingAction.value
     ? t("venue.subscribeConfirmTitle")
@@ -371,15 +436,52 @@ const toggleTheme = () => {
 };
 
 // 場館訂閱處理
+// 修改 src/components/layout/Header.vue 的 handleVenueClick
+
 const handleVenueClick = (venue) => {
+  // 1. 先判斷目前的訂閱狀態
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    isDrawerOpen.value = false;
+  }
   const isSubscribed = subscribedVenueIds.value.has(venue.id);
+
+  // 🔥 修正邏輯：只有在「尚未訂閱」時，才算作一次「感興趣的點擊」
+  // 如果已經訂閱了（現在點擊是要取消），就不計數
+  if (!isSubscribed) {
+    venueApi
+      .trackClick(venue.id)
+      .catch((err) => console.error("Track failed", err));
+  }
+
+  // 2. 設定目標場館
   targetVenue.value = venue;
 
   if (!isSubscribed) {
+    // 尚未訂閱 -> 跳出訂閱確認視窗
     isSubscribingAction.value = true;
     showVenueConfirmModal.value = true;
   } else {
+    // 已經訂閱 -> 直接執行取消訂閱 (或是跳出取消確認，視您的邏輯而定)
+    // 這裡我們維持原本的邏輯，如果您有做取消確認窗，這裡可能會是 showVenueConfirmModal.value = true
     toggleVenueSubscription(venue.id);
+  }
+};
+
+// 許願功能
+const openWishModal = () => {
+  wishName.value = "";
+  showWishModal.value = true;
+};
+
+const submitWish = async () => {
+  if (!wishName.value) return;
+  try {
+    await venueApi.submitWish(wishName.value);
+    showToast(t("messages.wishSuccess"), "success");
+    showWishModal.value = false;
+  } catch (error) {
+    showToast(t("errors.operationFailed"), "error");
   }
 };
 
@@ -589,6 +691,23 @@ onMounted(async () => {
   opacity: 0.9;
 }
 
+.btn-wish {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: #fdf5e6; /* 淡淡的米黃色 */
+  border: 1px dashed #d97706;
+  color: #d97706;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.btn-wish:hover {
+  background: #fff7ed;
+  border-style: solid;
+}
+
 /* Drawer 相關 */
 .drawer-overlay {
   position: fixed;
@@ -769,6 +888,19 @@ onMounted(async () => {
 .version-text {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.wish-form {
+  padding: 10px 0;
+}
+.wish-desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 10px;
+}
+.modal-footer-simple {
+  margin-top: 15px;
+  text-align: right;
 }
 
 /* RWD */

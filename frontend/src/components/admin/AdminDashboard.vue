@@ -1,25 +1,44 @@
 <template>
   <div class="admin-dashboard">
     <div class="dashboard-container">
-      <h1>📊 {{ $t('admin.dashboard') }}</h1>
-      
+      <h1>📊 {{ $t("admin.dashboard") }}</h1>
+
       <!-- Tab 切換 -->
       <div class="mode-selector">
-        <button @click="currentTab = 'DateQuery'" :class="{ active: currentTab === 'DateQuery' }">
-          {{ $t('admin.tabs.dateQuery') }}
+        <button
+          @click="currentTab = 'DateQuery'"
+          :class="{ active: currentTab === 'DateQuery' }"
+        >
+          {{ $t("admin.tabs.dateQuery") }}
         </button>
-        <button @click="currentTab = 'MonthlyStats'" :class="{ active: currentTab === 'MonthlyStats' }">
-          {{ $t('admin.tabs.monthlyStats') }}
+        <button
+          @click="currentTab = 'MonthlyStats'"
+          :class="{ active: currentTab === 'MonthlyStats' }"
+        >
+          {{ $t("admin.tabs.monthlyStats") }}
         </button>
-        <button @click="currentTab = 'TimeRangeStats'" :class="{ active: currentTab === 'TimeRangeStats' }">
-          {{ $t('admin.tabs.timeRange') }}
+        <button
+          @click="currentTab = 'TimeRangeStats'"
+          :class="{ active: currentTab === 'TimeRangeStats' }"
+        >
+          {{ $t("admin.tabs.timeRange") }}
         </button>
-        <button @click="currentTab = 'UserSchedule'" :class="{ active: currentTab === 'UserSchedule' }">
-          {{ $t('admin.tabs.userSchedule') }}
+        <button
+          @click="currentTab = 'UserSchedule'"
+          :class="{ active: currentTab === 'UserSchedule' }"
+        >
+          {{ $t("admin.tabs.userSchedule") }}
         </button>
         <!-- 🔥 新增：匯率資訊 Tab -->
-        <button @click="currentTab = 'ExchangeRateInfo'" :class="{ active: currentTab === 'ExchangeRateInfo' }">
+        <button
+          @click="currentTab = 'ExchangeRateInfo'"
+          :class="{ active: currentTab === 'ExchangeRateInfo' }"
+        >
           💱 匯率資訊
+        </button>
+
+        <button @click="currentTab = 'VenueStats'" :class="{ active: currentTab === 'VenueStats' }">
+          📈 {{ $t('admin.tabs.venueStats') }}
         </button>
       </div>
 
@@ -34,34 +53,35 @@
 </template>
 
 <script setup>
-import { ref , watch} from 'vue'
-import DateQuery from './dashboard/DateQuery.vue'
-import MonthlyStats from './dashboard/MonthlyStats.vue'
-import TimeRangeStats from './dashboard/TimeRangeStats.vue'
-import UserSchedule from './dashboard/UserSchedule.vue'
-import ExchangeRateInfo from './dashboard/ExchangeRateInfo.vue' // 🔥 新增
-
+import { ref, watch } from "vue";
+import DateQuery from "./dashboard/DateQuery.vue";
+import MonthlyStats from "./dashboard/MonthlyStats.vue";
+import TimeRangeStats from "./dashboard/TimeRangeStats.vue";
+import UserSchedule from "./dashboard/UserSchedule.vue";
+import ExchangeRateInfo from "./dashboard/ExchangeRateInfo.vue"; // 🔥 新增
+import VenueStats from "./dashboard/VenueStats.vue"; // Import
 
 const tabs = {
   DateQuery,
   MonthlyStats,
   TimeRangeStats,
   UserSchedule,
-   ExchangeRateInfo // 🔥 新增
-}
+  ExchangeRateInfo,
+  VenueStats,
+};
 
 // 🔥 修改：加入 localStorage 記憶功能
 // 1. 嘗試讀取紀錄，如果沒有則預設為 'DateQuery'
-const savedTab = localStorage.getItem('adminCurrentTab')
+const savedTab = localStorage.getItem("adminCurrentTab");
 // 為了防止舊的髒資料導致錯誤，確認一下讀到的 key 是否存在於 tabs 中
-const defaultTab = (savedTab && tabs[savedTab]) ? savedTab : 'DateQuery'
+const defaultTab = savedTab && tabs[savedTab] ? savedTab : "DateQuery";
 
-const currentTab = ref(defaultTab)
+const currentTab = ref(defaultTab);
 
 // 2. 監聽變化並儲存
 watch(currentTab, (newTab) => {
-  localStorage.setItem('adminCurrentTab', newTab)
-})
+  localStorage.setItem("adminCurrentTab", newTab);
+});
 </script>
 
 <!-- 您原本引入的 CSS (若有的話保留，若沒有請確認路徑) -->
@@ -81,7 +101,7 @@ watch(currentTab, (newTab) => {
 
 h1 {
   /* 標題使用森綠色 */
-  color: #557c55; 
+  color: #557c55;
   font-size: 24px;
   font-weight: 500;
   margin-bottom: 30px;
@@ -106,7 +126,7 @@ h1 {
   border-radius: 4px;
   transition: all 0.2s;
   letter-spacing: 0.05em;
-  
+
   /* 預設狀態：白底灰框 */
   background: white;
   border: 1px solid #e0e0e0;
@@ -133,7 +153,7 @@ h1 {
   border-radius: 8px;
   padding: 30px;
   /* 極淡陰影 */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02); 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
   border: 1px solid #e5e7eb;
 }
 </style>
