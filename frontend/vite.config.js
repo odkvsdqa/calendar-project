@@ -8,18 +8,17 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
  
-    }
-    
-    // ⚠️ 加上這個（新增）
-    // allowedHosts: [
-    //   ".loca.lt",
-    //   ".trycloudflare.com",
-    //   ".ngrok-free.app",
-    //   ".ngrok.io",
-    //   "localhost",
-    //   "split-mario-highway-disclaimer.trycloudflare.com",
-    // ],
-    // hmr: {
-    //   clientPort: 443, // 強制瀏覽器透過 HTTPS (443) 進行熱更新連線
-    // },
+    },
+  
+    allowedHosts: [
+      ".loca.lt",
+      ".trycloudflare.com",
+      ".ngrok-free.app",
+      ".ngrok.io",
+      "localhost",
+      "split-mario-highway-disclaimer.trycloudflare.com",
+    ],
+    hmr: {
+      clientPort: 443, // 強制瀏覽器透過 HTTPS (443) 進行熱更新連線
+    },
   },);
